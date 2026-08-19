@@ -198,4 +198,71 @@ export interface CreateApiKeyPayload {
   expiresAt?: string | null;
 }
 
+export type SubscriberStatus = 'SUBSCRIBED' | 'UNSUBSCRIBED';
+
+export interface NewsletterSubscriber {
+  _id: string;
+  email: string;
+  name?: string;
+  source: string;
+  status: SubscriberStatus;
+  tags: string[];
+  ipAddress?: string;
+  subscribedAt: string;
+  unsubscribedAt?: string | null;
+}
+
+export type CampaignStatus = 'DRAFT' | 'SENDING' | 'SENT' | 'FAILED';
+
+export interface NewsletterCampaign {
+  _id: string;
+  title: string;
+  subject: string;
+  preheader?: string;
+  senderName: string;
+  senderEmail: string;
+  htmlContent: string;
+  compiledGmailHtml?: string;
+  plainTextContent?: string;
+  status: CampaignStatus;
+  recipientCount: number;
+  sentCount: number;
+  failedCount: number;
+  sentAt?: string | null;
+  targetAudience: string;
+  tags: string[];
+  createdBy?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatar?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NewsletterStats {
+  totalSubscribers: number;
+  activeSubscribers: number;
+  unsubscribedCount: number;
+  totalCampaigns: number;
+  totalDelivered: number;
+  deliveryRate: number;
+  topSources: { source: string; count: number }[];
+}
+
+export interface CreateCampaignPayload {
+  title: string;
+  subject: string;
+  preheader?: string;
+  senderName?: string;
+  senderEmail?: string;
+  htmlContent: string;
+  plainTextContent?: string;
+  targetAudience?: string;
+  tags?: string[];
+}
+
+
 

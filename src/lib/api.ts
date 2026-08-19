@@ -11,6 +11,10 @@ import {
   ApiKeyItem,
   ApiKeyStats,
   CreateApiKeyPayload,
+  NewsletterSubscriber,
+  NewsletterCampaign,
+  NewsletterStats,
+  CreateCampaignPayload,
 } from '../types/auth';
 import { env } from './env';
 
@@ -622,5 +626,106 @@ export const publicApi = {
       throw new Error(json.message || 'Career application failed');
     }
     return json;
+  },
+};
+
+export const newsletterApi = {
+  getStats: async () => {
+    const res = await apiClient<NewsletterStats>('/newsletter/stats');
+    return res.data;
+  },
+
+  listCampaigns: async (params?: {
+    search?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.status && params.status !== 'ALL') searchParams.set('status', params.status);
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+
+    const qs = searchParams.toString();
+    const res = await apiClient<NewsletterCampaign[]>(`/newsletter/campaigns${qs ? `?${qs}` : ''}`);
+    return res;
+  },
+
+  getCampaign: async (id: string) => {
+    const res = await apiClient<NewsletterCampaign>(`/newsletter/campaigns/${id}`);
+    return res.data;
+  },
+
+  createCampaign: async (payload: CreateCampaignPayload) => {
+    const res = await apiClient<NewsletterCampaign>('/newsletter/campaigns', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  sendTestEmail: async (campaignId: string, recipientEmail: string) => {
+    const res = await apiClient<{ id: string; recipient: string }>(
+      `/newsletter/campaigns/${campaignId}/send-test`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ recipientEmail }),
+      }
+    );
+    return res;
+  },
+
+  broadcastCampaign: async (campaignId: string) => {
+    const res = await apiClient<NewsletterCampaign>(
+      `/newsletter/campaigns/${campaignId}/broadcast`,
+      {
+        method: 'POST',
+      }
+    );
+    return res;
+  },
+
+  deleteCampaign: async (campaignId: string) => {
+    const res = await apiClient<{ id: string }>(`/newsletter/campaigns/${campaignId}`, {
+      method: 'DELETE',
+    });
+    return res.data;
+  },
+
+  listSubscribers: async (params?: {
+    search?: string;
+    source?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.source && params.source !== 'all') searchParams.set('source', params.source);
+    if (params?.status && params.status !== 'ALL') searchParams.set('status', params.status);
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+
+    const qs = searchParams.toString();
+    const res = await apiClient<NewsletterSubscriber[]>(
+      `/newsletter/subscribers${qs ? `?${qs}` : ''}`
+    );
+    return res;
+  },
+
+  addSubscriber: async (payload: { email: string; name?: string; source?: string; tags?: string[] }) => {
+    const res = await apiClient<NewsletterSubscriber>('/newsletter/subscribers', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  deleteSubscriber: async (id: string) => {
+    const res = await apiClient<{ id: string }>(`/newsletter/subscribers/${id}`, {
+      method: 'DELETE',
+    });
+    return res.data;
   },
 };
