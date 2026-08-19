@@ -61,29 +61,7 @@ const AUDIENCE_OPTIONS: SelectOption[] = [
   { value: 'manual', label: 'Manual & Direct Imports' },
 ];
 
-const INITIAL_EMAIL_HTML = `<h1>🚀 Introducing Next-Gen ERP & Engineering Workstations</h1>
-<p>Hello valued partner,</p>
-<p>We are thrilled to unveil our latest agency infrastructure upgrades, featuring instant passwordless authentication, granular RBAC access controls, high-speed Edge CDN assets, and public microservice integrations.</p>
-
-<div class="callout-box" style="background-color: #F3F4F6; border-left: 4px solid #0B2E23; padding: 16px 20px; border-radius: 12px; margin: 20px 0; font-size: 14px;">
-  <strong>💡 What's New in This Release:</strong>
-  <ul style="margin: 8px 0 0 0; padding-left: 20px;">
-    <li>Centralized Security & Audit Governance Trail with Privacy Shield</li>
-    <li>Machine-to-Machine API Keys with Scoped Capabilities</li>
-    <li>Edge Cloudinary CDN Optimization & Media Asset Workstation</li>
-  </ul>
-</div>
-
-<p>Explore our latest project showcases and client delivery metrics directly on our live portal:</p>
-
-<div style="text-align: center; margin: 28px 0;">
-  <a href="https://at-tech.tech" class="cta-button" style="display: inline-block; background-color: #0B2E23; color: #FFFFFF !important; font-weight: 700; font-size: 14px; padding: 14px 32px; border-radius: 9999px; text-decoration: none !important;">
-    Explore Live Portfolio →
-  </a>
-</div>
-
-<p>Thank you for partnering with AtTech Solutions.</p>
-<p>Warm regards,<br><strong>The AtTech Engineering & Product Team</strong></p>`;
+const INITIAL_EMAIL_HTML = '';
 
 export default function NewsletterPage() {
   const { user, isSuperAdmin, isAdmin } = useAuth();
@@ -107,13 +85,13 @@ export default function NewsletterPage() {
   const [subscriberSourceFilter, setSubscriberSourceFilter] = useState('all');
 
   // Composer Form State
-  const [title, setTitle] = useState('Q3 Product & Engineering Release');
-  const [subject, setSubject] = useState('🚀 Introducing AtTech Systems & Edge Cloud Infrastructure');
-  const [preheader, setPreheader] = useState('Discover our newest agency tools, client portal, and open roles');
+  const [title, setTitle] = useState('');
+  const [subject, setSubject] = useState('');
+  const [preheader, setPreheader] = useState('');
   const [senderName, setSenderName] = useState('AtTech Solutions');
   const [senderEmail, setSenderEmail] = useState('newsletter@attech.io');
   const [targetAudience, setTargetAudience] = useState('all');
-  const [htmlContent, setHtmlContent] = useState(INITIAL_EMAIL_HTML);
+  const [htmlContent, setHtmlContent] = useState('');
 
   // Editor Visual State
   const editorRef = useRef<HTMLDivElement>(null);
@@ -217,7 +195,13 @@ export default function NewsletterPage() {
   // Rich Text Editor Commands (execCommand with HTML sync)
   const execFormat = (command: string, value: string | undefined = undefined) => {
     if (!editorRef.current) return;
-    document.execCommand(command, false, value);
+    editorRef.current.focus();
+    if (command === 'formatBlock') {
+      const tag = value || 'p';
+      document.execCommand('formatBlock', false, tag.startsWith('<') ? tag : `<${tag}>`);
+    } else {
+      document.execCommand(command, false, value);
+    }
     setHtmlContent(editorRef.current.innerHTML);
   };
 
@@ -789,7 +773,8 @@ export default function NewsletterPage() {
                 contentEditable
                 onInput={handleEditorInput}
                 dangerouslySetInnerHTML={{ __html: INITIAL_EMAIL_HTML }}
-                className="flex-1 p-6 overflow-y-auto focus:outline-none prose max-w-none text-slate-800 text-sm leading-relaxed"
+                data-placeholder="Start typing your promotional email here... Use the toolbar above to add headings, formatting, and Cloudinary CDN images."
+                className="flex-1 p-6 overflow-y-auto focus:outline-none email-editor-canvas max-w-none text-slate-800 text-sm leading-relaxed empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 empty:before:italic"
                 style={{ minHeight: '300px' }}
               />
             </Card>
@@ -845,10 +830,16 @@ export default function NewsletterPage() {
                   </div>
 
                   {/* Body Content */}
-                  <div
-                    className="p-6 text-slate-800 text-sm leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: htmlContent }}
-                  />
+                  {htmlContent ? (
+                    <div
+                      className="p-6 text-slate-800 text-sm leading-relaxed email-preview-canvas"
+                      dangerouslySetInnerHTML={{ __html: htmlContent }}
+                    />
+                  ) : (
+                    <div className="p-12 text-center text-slate-400 text-xs italic">
+                      Start composing in the editor on the left to see your email layout preview here...
+                    </div>
+                  )}
 
                   {/* Footer */}
                   <div className="p-6 border-t border-[#E5E7EB] text-center text-xs text-slate-400 space-y-1 bg-[#FAFAF9]">
@@ -1560,7 +1551,7 @@ export default function NewsletterPage() {
             {/* Inlined HTML Content Sandbox */}
             <div className="p-4 bg-slate-100 rounded-3xl border border-[#E5E7EB] max-h-96 overflow-y-auto">
               <div
-                className="bg-white p-6 rounded-2xl border border-[#E5E7EB] text-slate-800 text-sm leading-relaxed"
+                className="bg-white p-6 rounded-2xl border border-[#E5E7EB] text-slate-800 text-sm leading-relaxed email-preview-canvas"
                 dangerouslySetInnerHTML={{ __html: inspectCampaign.htmlContent }}
               />
             </div>
