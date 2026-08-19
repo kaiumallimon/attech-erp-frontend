@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
-import { DM_Sans } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '../providers/providers';
 
-const dmSans = DM_Sans({
+const inter = Inter({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700', '800'],
-  variable: '--font-dm-sans',
+  variable: '--font-inter',
   display: 'swap',
 });
 
@@ -24,11 +24,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={dmSans.variable}>
-      <body className={`${dmSans.className} min-h-screen bg-[#FAFAF9] text-[#0B251A] antialiased selection:bg-[#AEFF48] selection:text-[#0B251A] custom-scrollbar`}>
-        <Providers>
-          {children}
-        </Providers>
+    <html lang="en" className={inter.variable}>
+      <body
+        className={`${inter.className} min-h-screen bg-[#FAFAF9] text-[#0B251A] antialiased selection:bg-[#AEFF48] selection:text-[#0B251A] custom-scrollbar`}
+      >
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

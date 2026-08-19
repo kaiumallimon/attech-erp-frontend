@@ -398,13 +398,13 @@ export default function UsersManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* 1. UNIFIED STAT CARD (Single Card with border-divided sections)           */}
+      {/* 1. UNIFIED STAT CARD (Single Card in Curated Warm Tones)                   */}
       {/* ========================================================================= */}
-      <Card className="bg-white border border-[#E5E7EB] rounded-4xl shadow-xs overflow-hidden w-full">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#E5E7EB]">
+      <Card className="bg-[#FAF7F2] border border-[#ECE5DA] rounded-4xl shadow-2xs overflow-hidden w-full">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#ECE5DA]">
           {isStatsLoading ? (
             Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="p-5 space-y-3">
+              <div key={i} className="p-5 space-y-3 bg-[#FAF7F2]">
                 <Skeleton className="h-4 w-20 rounded-lg" />
                 <Skeleton className="h-8 w-16 rounded-lg" />
                 <Skeleton className="h-3 w-28 rounded-lg" />
@@ -413,72 +413,72 @@ export default function UsersManagementPage() {
           ) : (
             <>
               {/* Stat 1: Total Staff */}
-              <div className="p-5 flex flex-col justify-between hover:bg-[#FAFAF9]/60 transition-colors">
+              <div className="p-5 flex flex-col justify-between hover:bg-[#FFFDF9] transition-colors">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Staff</span>
-                  <div className="p-2 rounded-2xl bg-blue-50 text-blue-600">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#999083]">Total Staff</span>
+                  <div className="p-2 rounded-2xl bg-[#F7EFE6] text-[#B85D19] shadow-2xs">
                     <Users className="size-4" />
                   </div>
                 </div>
                 <div className="mt-3">
-                  <p className="text-2xl font-extrabold text-[#111111]">{stats?.totalUsers ?? meta.total}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Provisioned Accounts</p>
+                  <p className="text-2xl font-extrabold text-[#26221F]">{stats?.totalUsers ?? meta.total}</p>
+                  <p className="text-[10px] text-[#877E71] mt-0.5 font-medium">Provisioned Accounts</p>
                 </div>
               </div>
 
               {/* Stat 2: Active */}
-              <div className="p-5 flex flex-col justify-between hover:bg-[#FAFAF9]/60 transition-colors">
+              <div className="p-5 flex flex-col justify-between hover:bg-[#FFFDF9] transition-colors">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Active</span>
-                  <div className="p-2 rounded-2xl bg-emerald-50 text-emerald-600">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#999083]">Active</span>
+                  <div className="p-2 rounded-2xl bg-[#EEF5E8] text-[#3D7028] shadow-2xs">
                     <CheckCircle2 className="size-4" />
                   </div>
                 </div>
                 <div className="mt-3">
-                  <p className="text-2xl font-extrabold text-[#111111]">{stats?.activeUsers ?? 0}</p>
-                  <p className="text-[10px] text-emerald-600 font-bold mt-0.5">Operational Access</p>
+                  <p className="text-2xl font-extrabold text-[#26221F]">{stats?.activeUsers ?? 0}</p>
+                  <p className="text-[10px] text-[#3D7028] font-bold mt-0.5">Operational Access</p>
                 </div>
               </div>
 
               {/* Stat 3: Suspended */}
-              <div className="p-5 flex flex-col justify-between hover:bg-[#FAFAF9]/60 transition-colors">
+              <div className="p-5 flex flex-col justify-between hover:bg-[#FFFDF9] transition-colors">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Suspended</span>
-                  <div className="p-2 rounded-2xl bg-amber-50 text-amber-600">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#999083]">Suspended</span>
+                  <div className="p-2 rounded-2xl bg-[#FDF4E2] text-[#B57C1E] shadow-2xs">
                     <AlertTriangle className="size-4" />
                   </div>
                 </div>
                 <div className="mt-3">
-                  <p className="text-2xl font-extrabold text-[#111111]">{stats?.suspendedUsers ?? 0}</p>
-                  <p className="text-[10px] text-amber-600 font-bold mt-0.5">Access Locked</p>
+                  <p className="text-2xl font-extrabold text-[#26221F]">{stats?.suspendedUsers ?? 0}</p>
+                  <p className="text-[10px] text-[#B57C1E] font-bold mt-0.5">Access Locked</p>
                 </div>
               </div>
 
               {/* Stat 4: Admins & Leads */}
-              <div className="p-5 flex flex-col justify-between hover:bg-[#FAFAF9]/60 transition-colors">
+              <div className="p-5 flex flex-col justify-between hover:bg-[#FFFDF9] transition-colors">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Admins & Leads</span>
-                  <div className="p-2 rounded-2xl bg-purple-50 text-purple-600">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#999083]">Admins & Leads</span>
+                  <div className="p-2 rounded-2xl bg-[#F5EEF7] text-[#7E3D8E] shadow-2xs">
                     <ShieldCheck className="size-4" />
                   </div>
                 </div>
                 <div className="mt-3">
-                  <p className="text-2xl font-extrabold text-[#111111]">{stats?.adminCount ?? 0}</p>
-                  <p className="text-[10px] text-purple-600 font-bold mt-0.5">Elevated RBAC</p>
+                  <p className="text-2xl font-extrabold text-[#26221F]">{stats?.adminCount ?? 0}</p>
+                  <p className="text-[10px] text-[#7E3D8E] font-bold mt-0.5">Elevated RBAC</p>
                 </div>
               </div>
 
               {/* Stat 5: Departments */}
-              <div className="p-5 flex flex-col justify-between col-span-2 sm:col-span-1 hover:bg-[#FAFAF9]/60 transition-colors">
+              <div className="p-5 flex flex-col justify-between col-span-2 sm:col-span-1 hover:bg-[#FFFDF9] transition-colors">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Departments</span>
-                  <div className="p-2 rounded-2xl bg-teal-50 text-teal-600">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#999083]">Departments</span>
+                  <div className="p-2 rounded-2xl bg-[#F6EEE7] text-[#9C5535] shadow-2xs">
                     <Building2 className="size-4" />
                   </div>
                 </div>
                 <div className="mt-3">
-                  <p className="text-2xl font-extrabold text-[#111111]">{stats?.departmentsCount ?? DEPARTMENTS.length}</p>
-                  <p className="text-[10px] text-teal-600 font-bold mt-0.5">Functional Units</p>
+                  <p className="text-2xl font-extrabold text-[#26221F]">{stats?.departmentsCount ?? DEPARTMENTS.length}</p>
+                  <p className="text-[10px] text-[#9C5535] font-bold mt-0.5">Functional Units</p>
                 </div>
               </div>
             </>
@@ -666,8 +666,16 @@ export default function UsersManagementPage() {
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
                           <div className="relative">
-                            <div className="size-10 rounded-full bg-[#0B251A] text-[#AEFF48] font-bold text-xs flex items-center justify-center shadow-xs shrink-0">
-                              {initials}
+                            <div className="size-10 rounded-full overflow-hidden bg-[#0B251A] text-[#AEFF48] font-bold text-xs flex items-center justify-center shadow-xs shrink-0">
+                              {u.avatar ? (
+                                <img
+                                  src={u.avatar}
+                                  alt={`${u.firstName} ${u.lastName}`}
+                                  className="size-full object-cover"
+                                />
+                              ) : (
+                                <span>{initials}</span>
+                              )}
                             </div>
                             <span
                               className={`absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-white ${

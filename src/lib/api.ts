@@ -298,6 +298,16 @@ export const usersApi = {
     });
   },
 
+  uploadAvatar: async (file: File, userId?: string) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const endpoint = userId ? `/users/${userId}/avatar` : '/users/me/avatar';
+    return apiClient<{ avatarUrl: string; user: UserProfile }>(endpoint, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
   delete: async (userId: string) => {
     return apiClient<{ deleted: boolean }>(`/users/${userId}`, {
       method: 'DELETE',

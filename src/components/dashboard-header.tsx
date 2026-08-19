@@ -165,8 +165,16 @@ export function DashboardHeader() {
             href="/dashboard/profile"
             className="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full border border-black/5 hover:border-black/10 bg-white/60 hover:bg-white transition-colors cursor-pointer shadow-2xs"
           >
-            <div className="size-7 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-[10px] flex items-center justify-center shadow-xs">
-              {initials}
+            <div className="size-7 rounded-full overflow-hidden bg-[#0B2E23] text-[#AEFF48] font-bold text-[10px] flex items-center justify-center shadow-xs shrink-0">
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.firstName || 'User'}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <span>{initials}</span>
+              )}
             </div>
             <span className="text-xs font-bold text-[#111111] hidden sm:inline">
               {user?.firstName || 'User'}

@@ -67,8 +67,16 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         <div className="p-4 border-b border-[#E5E7EB]/60 bg-[#FAFAF9]/60 shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#0B2E23] text-xs font-bold text-[#AEFF48] shadow-xs">
-                {initials}
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full overflow-hidden bg-[#0B2E23] text-xs font-bold text-[#AEFF48] shadow-xs">
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={fullName}
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  <span>{initials}</span>
+                )}
               </div>
               <span className="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-white bg-emerald-500" />
             </div>
