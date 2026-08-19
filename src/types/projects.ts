@@ -90,6 +90,7 @@ export interface Sprint {
     firstName: string;
     lastName: string;
     email: string;
+    role?: string;
     avatar?: string;
   };
   assignedMemberIds?: Array<{
@@ -97,6 +98,7 @@ export interface Sprint {
     firstName: string;
     lastName: string;
     email: string;
+    role?: string;
     avatar?: string;
   }>;
   velocityHours?: number;
@@ -120,6 +122,7 @@ export interface Task {
     firstName: string;
     lastName: string;
     email: string;
+    role?: string;
     avatar?: string;
   };
   reporterId?: {
@@ -127,6 +130,7 @@ export interface Task {
     firstName: string;
     lastName: string;
     email: string;
+    role?: string;
     avatar?: string;
   };
   estimatedHours?: number;

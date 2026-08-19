@@ -317,8 +317,17 @@ export const usersApi = {
     if (params?.page) query.set('page', String(params.page));
     if (params?.limit) query.set('limit', String(params.limit));
 
-    const res = await apiClient<UserProfile[]>(`/users?${query.toString()}`);
-    return res;
+    const res = await apiClient<any>(`/users?${query.toString()}`);
+    const rawData = res?.data;
+    const usersList: UserProfile[] = Array.isArray(rawData)
+      ? rawData
+      : Array.isArray(rawData?.users)
+      ? rawData.users
+      : Array.isArray((res as any)?.users)
+      ? (res as any).users
+      : [];
+    const meta = (res as any)?.meta || rawData?.pagination || { total: usersList.length, page: 1, limit: 10, totalPages: 1 };
+    return { data: usersList, meta };
   },
 
   getStats: async () => {

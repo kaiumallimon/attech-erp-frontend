@@ -196,7 +196,14 @@ export default function ProjectsPage() {
       setProjects(Array.isArray(projectsRes.data) ? projectsRes.data : []);
       setClients(Array.isArray(clientsRes.data) ? clientsRes.data : []);
       setLeads(Array.isArray(leadsRes.data) ? leadsRes.data : []);
-      setEmployees(Array.isArray(usersRes) ? usersRes : []);
+      const userList = Array.isArray(usersRes)
+        ? usersRes
+        : Array.isArray((usersRes as any)?.data)
+        ? (usersRes as any).data
+        : Array.isArray((usersRes as any)?.users)
+        ? (usersRes as any).users
+        : [];
+      setEmployees(userList);
     } catch (err) {
       console.error('Failed to fetch projects data:', err);
     } finally {
@@ -252,6 +259,69 @@ export default function ProjectsPage() {
 
     return map;
   }, [currentProject]);
+
+  // Combined Assignee & Admin list for tasks and sprint leads
+  const assigneeOptions = useMemo(() => {
+    const list = [...employees];
+    const currentUserId = (user as any)?.id || (user as any)?._id;
+    if (user && currentUserId && !list.some((e) => (e.id === currentUserId || (e as any)._id === currentUserId))) {
+      list.unshift({
+        id: currentUserId,
+        firstName: user.firstName || 'Admin',
+        lastName: user.lastName || 'User',
+        email: user.email,
+        role: user.role as any,
+        status: 'ACTIVE',
+        authProvider: 'LOCAL',
+        isEmailVerified: true,
+      });
+    }
+
+    const mapped = list.map((e) => {
+      const uid = e.id || (e as any)._id || '';
+      const roleLabel = e.role === 'SUPER_ADMIN' ? '👑 Super Admin' : e.role === 'ADMIN' ? '⭐ Admin' : (e.role?.replace(/_/g, ' ') || 'Staff');
+      return {
+        value: uid,
+        label: `${e.firstName} ${e.lastName} (${roleLabel})`,
+      };
+    }).filter(opt => opt.value !== '');
+
+    return [
+      { value: '', label: 'Unassigned (Assign Later)' },
+      ...mapped,
+    ];
+  }, [employees, user]);
+
+  const sprintLeadOptions = useMemo(() => {
+    const list = [...employees];
+    const currentUserId = (user as any)?.id || (user as any)?._id;
+    if (user && currentUserId && !list.some((e) => (e.id === currentUserId || (e as any)._id === currentUserId))) {
+      list.unshift({
+        id: currentUserId,
+        firstName: user.firstName || 'Admin',
+        lastName: user.lastName || 'User',
+        email: user.email,
+        role: user.role as any,
+        status: 'ACTIVE',
+        authProvider: 'LOCAL',
+        isEmailVerified: true,
+      });
+    }
+
+    const mapped = list.map((e) => {
+      const uid = e.id || (e as any)._id || '';
+      const roleLabel = e.role === 'SUPER_ADMIN' ? '👑 Super Admin' : e.role === 'ADMIN' ? '⭐ Admin' : (e.role?.replace(/_/g, ' ') || 'Tech Lead');
+      return {
+        value: uid,
+        label: `${e.firstName} ${e.lastName} (${roleLabel})`,
+      };
+    }).filter(opt => opt.value !== '');
+
+    return [
+      { value: '', label: 'Select Sprint Lead / Admin' },
+      ...mapped,
+    ];
+  }, [employees, user]);
 
   // Handlers
   const handleOpenDetail = async (proj: Project) => {
@@ -650,11 +720,23 @@ export default function ProjectsPage() {
                         {/* Assignee & Sprint Badges */}
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {t.assigneeId ? (
-                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] text-emerald-800 font-bold">
-                              <div className="size-3.5 rounded-full bg-[#0B2E23] text-white text-[8px] flex items-center justify-center font-bold">
-                                {t.assigneeId.firstName?.[0] || 'U'}
+                            <div
+                              className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold ${
+                                t.assigneeId.role === 'SUPER_ADMIN' || t.assigneeId.role === 'ADMIN'
+                                  ? 'bg-amber-50 border-amber-200 text-amber-900'
+                                  : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                              }`}
+                            >
+                              <div
+                                className={`size-3.5 rounded-full text-white text-[8px] flex items-center justify-center font-bold ${
+                                  t.assigneeId.role === 'SUPER_ADMIN' || t.assigneeId.role === 'ADMIN' ? 'bg-amber-700' : 'bg-[#0B2E23]'
+                                }`}
+                              >
+                                {t.assigneeId.role === 'SUPER_ADMIN' ? '👑' : t.assigneeId.role === 'ADMIN' ? '⭐' : t.assigneeId.firstName?.[0] || 'U'}
                               </div>
-                              <span className="truncate max-w-[85px]">{t.assigneeId.firstName} {t.assigneeId.lastName?.[0]}.</span>
+                              <span className="truncate max-w-[95px]">
+                                {t.assigneeId.firstName} {t.assigneeId.lastName?.[0]}.
+                              </span>
                             </div>
                           ) : (
                             <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-[10px] text-slate-400 font-medium">
@@ -1209,19 +1291,13 @@ export default function ProjectsPage() {
                 />
               </div>
 
-              {/* Assignee Employee Selector */}
+              {/* Assignee Employee & Admin Selector */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Assignee Employee</label>
+                <label className="text-xs font-bold text-slate-700">Assignee (Employee / Admin)</label>
                 <HeroSelect
                   value={taskForm.assigneeId}
                   onChange={(val) => setTaskForm({ ...taskForm, assigneeId: val })}
-                  options={[
-                    { value: '', label: 'Unassigned (Assign Later)' },
-                    ...employees.map((e) => ({
-                      value: e.id,
-                      label: `${e.firstName} ${e.lastName} (${e.role || 'Staff'})`,
-                    })),
-                  ]}
+                  options={assigneeOptions}
                 />
               </div>
 
@@ -1376,13 +1452,7 @@ export default function ProjectsPage() {
                 <HeroSelect
                   value={sprintForm.leadId}
                   onChange={(val) => setSprintForm({ ...sprintForm, leadId: val })}
-                  options={[
-                    { value: '', label: 'Select Sprint Lead' },
-                    ...employees.map((e) => ({
-                      value: e.id,
-                      label: `${e.firstName} ${e.lastName} (${e.role || 'Tech Lead'})`,
-                    })),
-                  ]}
+                  options={sprintLeadOptions}
                 />
               </div>
 
