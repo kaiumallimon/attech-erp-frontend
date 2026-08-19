@@ -20,6 +20,12 @@ import {
   Check,
   Send,
   Zap,
+  MessageSquare,
+  PhoneCall,
+  Sparkles,
+  Clock,
+  ArrowRight,
+  History,
 } from 'lucide-react';
 import { Card } from '@heroui/react';
 import {
@@ -131,6 +137,83 @@ const BUDGET_OPTIONS = [
   { value: BudgetRange.UNSPECIFIED, label: 'Not sure yet' },
 ];
 
+const getActivityConfig = (type: CrmActivityType | string) => {
+  switch (type) {
+    case CrmActivityType.SYSTEM_EVENT:
+      return {
+        icon: Zap,
+        dotBg: 'bg-purple-600',
+        ringColor: 'ring-purple-100',
+        badgeBg: 'bg-purple-50 text-purple-700 border-purple-200',
+        label: 'System Ingestion',
+      };
+    case CrmActivityType.NOTE:
+      return {
+        icon: MessageSquare,
+        dotBg: 'bg-[#0B2E23]',
+        ringColor: 'ring-[#0B2E23]/15',
+        badgeBg: 'bg-[#EEF5E8] text-[#0B2E23] border-[#D8EAD0]',
+        label: 'Sales Note',
+      };
+    case CrmActivityType.STAGE_CHANGE:
+      return {
+        icon: TrendingUp,
+        dotBg: 'bg-amber-500',
+        ringColor: 'ring-amber-100',
+        badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
+        label: 'Pipeline Stage Move',
+      };
+    case CrmActivityType.CALL:
+      return {
+        icon: PhoneCall,
+        dotBg: 'bg-emerald-600',
+        ringColor: 'ring-emerald-100',
+        badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        label: 'Call Log',
+      };
+    case CrmActivityType.MEETING:
+      return {
+        icon: Calendar,
+        dotBg: 'bg-indigo-600',
+        ringColor: 'ring-indigo-100',
+        badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+        label: 'Scoping Session',
+      };
+    case CrmActivityType.EMAIL:
+      return {
+        icon: Mail,
+        dotBg: 'bg-sky-500',
+        ringColor: 'ring-sky-100',
+        badgeBg: 'bg-sky-50 text-sky-700 border-sky-200',
+        label: 'Email Sent',
+      };
+    case CrmActivityType.PROPOSAL:
+      return {
+        icon: FileText,
+        dotBg: 'bg-violet-600',
+        ringColor: 'ring-violet-100',
+        badgeBg: 'bg-violet-50 text-violet-700 border-violet-200',
+        label: 'Proposal Issued',
+      };
+    case CrmActivityType.CONVERTED:
+      return {
+        icon: CheckCircle2,
+        dotBg: 'bg-[#0B2E23]',
+        ringColor: 'ring-[#AEFF48]/40',
+        badgeBg: 'bg-[#0B2E23] text-[#AEFF48] border-[#0B2E23]',
+        label: 'Client Account Converted',
+      };
+    default:
+      return {
+        icon: Clock,
+        dotBg: 'bg-slate-600',
+        ringColor: 'ring-slate-100',
+        badgeBg: 'bg-slate-50 text-slate-700 border-slate-200',
+        label: 'Activity',
+      };
+  }
+};
+
 export default function CrmPage() {
   const [activeTab, setActiveTab] = useState<'kanban' | 'directory' | 'clients' | 'api'>('kanban');
   const [stats, setStats] = useState<CrmStats | null>(null);
@@ -185,6 +268,7 @@ export default function CrmPage() {
   });
 
   const [activityNote, setActivityNote] = useState('');
+  const [activityType, setActivityType] = useState<CrmActivityType>(CrmActivityType.NOTE);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedApiKeySnippet, setCopiedApiKeySnippet] = useState(false);
 
@@ -311,9 +395,15 @@ export default function CrmPage() {
     if (!selectedLead || !activityNote.trim()) return;
     try {
       setIsSubmitting(true);
+      const titleMap: Record<string, string> = {
+        [CrmActivityType.NOTE]: 'Internal Team Note',
+        [CrmActivityType.CALL]: 'Phone / WhatsApp Discussion',
+        [CrmActivityType.MEETING]: 'Discovery & Architecture Meeting',
+        [CrmActivityType.EMAIL]: 'Client Email Correspondence',
+      };
       const activity = await crmApi.logActivity(selectedLead._id, {
-        type: CrmActivityType.NOTE,
-        title: 'Sales & Scoping Note',
+        type: activityType,
+        title: titleMap[activityType] || 'Activity Logged',
         content: activityNote.trim(),
       });
       setSelectedLead((prev) =>
@@ -1250,48 +1340,154 @@ await fetch('http://localhost:4000/api/v1/public/crm/leads', {
               </div>
 
               {/* Activity Timeline */}
-              <div className="space-y-4 pt-4 border-t border-[#E5E7EB]">
+              <div className="space-y-5 pt-5 border-t border-[#E5E7EB]">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-extrabold text-[#0B251A] uppercase tracking-wider">Activity Timeline & Notes</h4>
+                  <div className="flex items-center gap-2">
+                    <History className="size-4 text-[#0B2E23]" />
+                    <h4 className="text-xs font-extrabold text-[#0B251A] uppercase tracking-wider">
+                      Activity Timeline & Engagement Logs
+                    </h4>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                    {(selectedLead.activities || []).length + 1} Events
+                  </span>
                 </div>
 
-                {/* Add Note Form */}
-                <form onSubmit={handleAddActivity} className="space-y-2">
+                {/* Add Note / Activity Form */}
+                <form onSubmit={handleAddActivity} className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#ECE5DA] space-y-3 shadow-2xs">
+                  {/* Activity Type Selector Pills */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[10px] font-bold text-[#877E71] uppercase tracking-wider mr-1">Log Type:</span>
+                    {[
+                      { type: CrmActivityType.NOTE, label: 'Note', icon: MessageSquare },
+                      { type: CrmActivityType.CALL, label: 'Phone Call', icon: PhoneCall },
+                      { type: CrmActivityType.MEETING, label: 'Meeting', icon: Calendar },
+                      { type: CrmActivityType.EMAIL, label: 'Email', icon: Mail },
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      const isSelected = activityType === item.type;
+                      return (
+                        <button
+                          key={item.type}
+                          type="button"
+                          onClick={() => setActivityType(item.type)}
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#0B2E23] text-white shadow-xs'
+                              : 'bg-white hover:bg-slate-100 text-slate-700 border border-[#E5E7EB]'
+                          }`}
+                        >
+                          <Icon className="size-3" />
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   <textarea
                     value={activityNote}
                     onChange={(e) => setActivityNote(e.target.value)}
-                    placeholder="Log a phone call summary, scoping meeting takeaway, or client update..."
+                    placeholder={`Write ${activityType === CrmActivityType.CALL ? 'call takeaways' : activityType === CrmActivityType.MEETING ? 'scoping meeting highlights' : 'internal notes or updates'}...`}
                     rows={2}
-                    className="w-full p-3 rounded-2xl bg-white border border-[#E5E7EB] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0B2E23]"
+                    className="w-full p-3 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#0B2E23]"
                   />
-                  <div className="flex justify-end">
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[10px] text-slate-400">Timestamps and actor info are recorded automatically.</span>
                     <button
                       type="submit"
                       disabled={isSubmitting || !activityNote.trim()}
-                      className="px-4 py-1.5 rounded-full bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                      className="px-4 py-1.5 rounded-full bg-[#0B2E23] hover:bg-[#08221a] text-white text-xs font-bold flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-2xs transition-colors"
                     >
-                      <Send className="size-3" />
-                      <span>Post Note</span>
+                      <Send className="size-3 text-[#AEFF48]" />
+                      <span>{isSubmitting ? 'Posting...' : 'Post Entry'}</span>
                     </button>
                   </div>
                 </form>
 
-                {/* Timeline Entries */}
-                <div className="space-y-3 pt-2">
-                  {(selectedLead.activities || []).length === 0 ? (
-                    <p className="text-xs text-slate-400 italic">No notes logged yet.</p>
-                  ) : (
-                    selectedLead.activities!.map((act) => (
-                      <div key={act._id} className="p-3.5 rounded-2xl bg-[#FAFAF9] border border-[#E5E7EB] space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-900">{act.title}</span>
-                          <span className="text-[10px] text-slate-400">{new Date(act.createdAt).toLocaleString()}</span>
+                {/* Vertical Continuous Timeline Structure */}
+                <div className="relative pl-6 space-y-6 pt-2">
+                  {/* The Continuous Vertical Line connecting all nodes on left */}
+                  <div className="absolute left-[13px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-[#0B2E23] via-slate-200 to-slate-200" />
+
+                  {/* Activity Timeline Entries */}
+                  {(selectedLead.activities || []).map((act) => {
+                    const config = getActivityConfig(act.type);
+                    const Icon = config.icon;
+
+                    return (
+                      <div key={act._id} className="relative group">
+                        {/* Node Dot aligned on the vertical line */}
+                        <div
+                          className={`absolute -left-[23px] top-1.5 size-6 rounded-full ${config.dotBg} text-white flex items-center justify-center ring-4 ${config.ringColor} shadow-xs z-10 transition-transform group-hover:scale-110`}
+                        >
+                          <Icon className="size-3" />
                         </div>
-                        {act.content && <p className="text-xs text-slate-600">{act.content}</p>}
-                        <span className="text-[9px] text-slate-400 block pt-0.5">By {act.actorName || 'System'}</span>
+
+                        {/* Content Box */}
+                        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-2xs hover:shadow-xs transition-all space-y-2">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-[#0B251A]">{act.title}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border ${config.badgeBg}`}>
+                                {config.label}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-medium">
+                              {new Date(act.createdAt).toLocaleString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          </div>
+
+                          {act.content && (
+                            <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap bg-[#FAFAF9] p-2.5 rounded-xl border border-[#ECE5DA]/60">
+                              {act.content}
+                            </p>
+                          )}
+
+                          <div className="flex items-center justify-between pt-1 text-[10px] text-slate-400">
+                            <div className="flex items-center gap-1.5">
+                              <User className="size-3 text-slate-400" />
+                              <span>Logged by <strong className="text-slate-600 font-semibold">{act.actorName || 'System'}</strong></span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    ))
-                  )}
+                    );
+                  })}
+
+                  {/* Initial Lead Creation Genesis Milestone Marker */}
+                  <div className="relative group">
+                    <div className="absolute -left-[23px] top-1.5 size-6 rounded-full bg-slate-500 text-white flex items-center justify-center ring-4 ring-slate-100 shadow-xs z-10">
+                      <Sparkles className="size-3 text-amber-300" />
+                    </div>
+                    <div className="bg-[#FAFAF9] border border-dashed border-[#E5E7EB] rounded-2xl p-4 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-800">Inbound Lead Originated</span>
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                            Genesis
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          {new Date(selectedLead.createdAt).toLocaleString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 leading-relaxed">
+                        Received inquiry for <strong>{selectedLead.service}</strong> with budget bracket <strong>{selectedLead.budgetRange}</strong> via <strong>{selectedLead.source}</strong>.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
