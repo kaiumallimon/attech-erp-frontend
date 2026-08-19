@@ -1,26 +1,101 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-dm-sans), 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: var(--font-dm-sans), 'DM Sans', sans-serif;
+
+  /* AtTech signature brand palette */
+  --color-brand-ink: #0B251A;
+  --color-brand-moss: #0B2E23;
+  --color-brand-lime: #AEFF48;
+  --color-brand-sage: #F3F4F6;
+  --color-brand-muted: #6B7280;
+  --color-brand-cream: #FFFFFF;
+  --color-brand-cream-line: #E5E7EB;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --brand-ink: #0B251A;
+  --brand-moss: #0B2E23;
+  --brand-lime: #AEFF48;
+  --brand-sage: #F3F4F6;
+  --brand-muted: #6B7280;
+  --brand-cream: #FFFFFF;
+  --brand-cream-line: #E5E7EB;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-dm-sans), 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #FAFAF9;
+  color: #0B251A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(11, 37, 26, 0.2);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0B251A;
+}
+
+/* AtTech Signature UI Utility Classes */
+.attech-ink-bg {
+  background-color: #0B251A;
+}
+
+.attech-moss-bg {
+  background-color: #0B2E23;
+}
+
+.attech-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 4px 25px -4px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.attech-card:hover {
+  border-color: #D1D5DB;
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.08);
+}
+
+.attech-card-moss {
+  background: #0B2E23;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.attech-card-white {
+  background: #FFFFFF;
+  color: #0B251A;
+  border: 1px solid #E5E7EB;
+}
+
+.attech-btn-lime {
+  background-color: #AEFF48;
+  color: #0B251A;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.attech-btn-lime:hover {
+  background-color: #c4ff75;
+  box-shadow: 0 0 20px rgba(174, 255, 72, 0.4);
+  transform: translateY(-1px);
+}
+
+.attech-badge-lime {
+  background-color: rgba(174, 255, 72, 0.2);
+  color: #0B251A;
+  border: 1px solid #AEFF48;
 }
