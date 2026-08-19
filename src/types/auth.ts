@@ -64,3 +64,53 @@ export interface AuthLoginResponse {
   tokens: AuthTokens;
   permissions: string[];
 }
+
+export interface CdnUsageStats {
+  plan: string;
+  lastUpdated: string;
+  storage: {
+    usage: number;
+    limit: number;
+    usedPercent: number;
+    usageHuman: string;
+    limitHuman: string;
+  };
+  bandwidth: {
+    usage: number;
+    limit: number;
+    usedPercent: number;
+    usageHuman: string;
+    limitHuman: string;
+  };
+  transformations: {
+    usage: number;
+    limit: number;
+    usedPercent: number;
+  };
+  objects: {
+    usage: number;
+    limit: number;
+    usedPercent: number;
+  };
+  credits: {
+    usage: number;
+    limit: number;
+    usedPercent: number;
+  };
+  isLive: boolean;
+}
+
+export interface CdnResourceItem {
+  publicId: string;
+  format: string;
+  version: number;
+  resourceType: string;
+  type: string;
+  createdAt: string;
+  bytes: number;
+  bytesHuman: string;
+  width?: number;
+  height?: number;
+  secureUrl: string;
+  folder?: string;
+}

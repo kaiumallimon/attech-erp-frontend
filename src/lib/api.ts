@@ -1,5 +1,12 @@
 import Cookies from 'js-cookie';
-import { AuthLoginResponse, AuthMeResponse, AuthTokens, UserProfile } from '../types/auth';
+import {
+  AuthLoginResponse,
+  AuthMeResponse,
+  AuthTokens,
+  UserProfile,
+  CdnUsageStats,
+  CdnResourceItem,
+} from '../types/auth';
 import { env } from './env';
 
 const API_BASE_URL = env.apiUrl;
@@ -312,5 +319,56 @@ export const usersApi = {
     return apiClient<{ deleted: boolean }>(`/users/${userId}`, {
       method: 'DELETE',
     });
+  },
+};
+
+export const cdnApi = {
+  getUsage: async () => {
+    const res = await apiClient<CdnUsageStats>('/cdn/usage');
+    return res.data;
+  },
+
+  getResources: async (params?: {
+    maxResults?: number;
+    nextCursor?: string;
+    prefix?: string;
+    resourceType?: string;
+    search?: string;
+  }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.maxResults) searchParams.set('maxResults', params.maxResults.toString());
+    if (params?.nextCursor) searchParams.set('nextCursor', params.nextCursor);
+    if (params?.prefix) searchParams.set('prefix', params.prefix);
+    if (params?.resourceType && params.resourceType !== 'all') {
+      searchParams.set('resourceType', params.resourceType);
+    }
+    if (params?.search) searchParams.set('search', params.search);
+
+    const qs = searchParams.toString();
+    const res = await apiClient<CdnResourceItem[]>(
+      `/cdn/resources${qs ? `?${qs}` : ''}`
+    );
+    return res;
+  },
+
+  upload: async (file: File, folder?: string) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const qs = folder ? `?folder=${encodeURIComponent(folder)}` : '';
+    const res = await apiClient<CdnResourceItem>(`/cdn/upload${qs}`, {
+      method: 'POST',
+      body: formData,
+    });
+    return res.data;
+  },
+
+  delete: async (publicId: string, resourceType: string = 'image') => {
+    const res = await apiClient<{ success: boolean; publicId: string }>(
+      `/cdn/resources/${publicId}?resourceType=${resourceType}`,
+      {
+        method: 'DELETE',
+      }
+    );
+    return res.data;
   },
 };
