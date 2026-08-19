@@ -89,6 +89,128 @@ export function DashboardPageSkeleton({ pathname = '/dashboard' }: { pathname?: 
       </div>
     );
   }
+
+  // 0.1 Projects & Agile SDLC Sprints Skeleton
+  if (pathname.includes('/dashboard/projects')) {
+    return (
+      <div className="w-full space-y-6 animate-fadeIn">
+        {/* Header Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <Shimmer className="h-7 w-72 rounded-xl" />
+            <Shimmer className="h-4 w-96 rounded-lg" />
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Shimmer className="h-11 w-36 rounded-full" />
+            <Shimmer className="h-11 w-44 rounded-full" />
+          </div>
+        </div>
+
+        {/* Warm Telemetry Card (4 Segments) */}
+        <Card className="bg-[#FAF7F2] border border-[#ECE5DA] rounded-4xl shadow-2xs overflow-hidden w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#ECE5DA]">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="p-5 flex flex-col justify-between space-y-3">
+                <div className="flex items-center justify-between">
+                  <Shimmer className="h-3 w-20 rounded-md" />
+                  <Shimmer className="size-8 rounded-2xl" />
+                </div>
+                <div className="space-y-1.5">
+                  <Shimmer className="h-7 w-24 rounded-lg" />
+                  <Shimmer className="h-3 w-28 rounded-md" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Sprint / Tasks Kanban Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {Array.from({ length: 6 }).map((_, colIdx) => (
+            <div key={colIdx} className="bg-[#F8F8F6] rounded-3xl p-3 space-y-3 min-h-[480px] border border-[#ECE5DA]/80">
+              <div className="flex items-center justify-between px-2 py-1">
+                <Shimmer className="h-4 w-20 rounded-md" />
+                <Shimmer className="h-5 w-6 rounded-full" />
+              </div>
+              <div className="space-y-2.5">
+                {Array.from({ length: 2 }).map((_, cardIdx) => (
+                  <Card key={cardIdx} className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-2">
+                    <Shimmer className="h-4 w-32 rounded-md" />
+                    <Shimmer className="h-3 w-full rounded-md" />
+                    <div className="flex items-center justify-between pt-1">
+                      <Shimmer className="h-4 w-12 rounded-full" />
+                      <Shimmer className="size-6 rounded-full" />
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // 0.2 Finance & Billing Invoicing Skeleton
+  if (pathname.includes('/dashboard/finance')) {
+    return (
+      <div className="w-full space-y-6 animate-fadeIn">
+        {/* Header Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <Shimmer className="h-7 w-72 rounded-xl" />
+            <Shimmer className="h-4 w-96 rounded-lg" />
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Shimmer className="h-11 w-36 rounded-full" />
+            <Shimmer className="h-11 w-44 rounded-full" />
+          </div>
+        </div>
+
+        {/* Warm Telemetry Card (5 Segments) */}
+        <Card className="bg-[#FAF7F2] border border-[#ECE5DA] rounded-4xl shadow-2xs overflow-hidden w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#ECE5DA]">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="p-5 flex flex-col justify-between space-y-3">
+                <div className="flex items-center justify-between">
+                  <Shimmer className="h-3 w-20 rounded-md" />
+                  <Shimmer className="size-8 rounded-2xl" />
+                </div>
+                <div className="space-y-1.5">
+                  <Shimmer className="h-7 w-20 rounded-lg" />
+                  <Shimmer className="h-3 w-24 rounded-md" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Invoices Table Skeleton */}
+        <Card className="bg-white border border-[#E5E7EB] rounded-4xl shadow-xs overflow-hidden">
+          <div className="p-5 border-b border-[#E5E7EB] bg-[#FAFAF9] flex items-center justify-between">
+            <Shimmer className="h-4 w-40 rounded-md" />
+            <Shimmer className="h-8 w-32 rounded-full" />
+          </div>
+          <div className="divide-y divide-[#E5E7EB]/60 p-4 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Shimmer className="size-8 rounded-xl" />
+                  <div className="space-y-1">
+                    <Shimmer className="h-4 w-32 rounded-md" />
+                    <Shimmer className="h-3 w-48 rounded-md" />
+                  </div>
+                </div>
+                <Shimmer className="h-6 w-20 rounded-full" />
+                <Shimmer className="h-4 w-24 rounded-md" />
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   if (pathname.includes('/dashboard/newsletter')) {
     return (
       <div className="w-full space-y-6 animate-fadeIn">

@@ -897,3 +897,171 @@ export const crmApi = {
   },
 };
 
+export const projectsApi = {
+  getStats: async () => {
+    const res = await apiClient<import('../types/projects').ProjectsStats>('/projects/stats');
+    return res.data;
+  },
+
+  getProjects: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    type?: string;
+    clientId?: string;
+    search?: string;
+  }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    if (params?.status && params.status !== 'ALL') searchParams.append('status', params.status);
+    if (params?.type && params.type !== 'ALL') searchParams.append('type', params.type);
+    if (params?.clientId && params.clientId !== 'ALL') searchParams.append('clientId', params.clientId);
+    if (params?.search) searchParams.append('search', params.search);
+
+    const qs = searchParams.toString();
+    const res = await apiClient<any>(`/projects${qs ? `?${qs}` : ''}`);
+    const items = Array.isArray(res.data)
+      ? res.data
+      : Array.isArray(res.data?.data)
+      ? res.data.data
+      : [];
+    return { data: items as import('../types/projects').Project[], meta: res.meta || res.data?.meta };
+  },
+
+  getProjectById: async (id: string) => {
+    const res = await apiClient<import('../types/projects').Project>(`/projects/${id}`);
+    return res.data;
+  },
+
+  createProject: async (payload: any) => {
+    const res = await apiClient<import('../types/projects').Project>('/projects', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  updateProject: async (id: string, payload: any) => {
+    const res = await apiClient<import('../types/projects').Project>(`/projects/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  addRevision: async (id: string, payload: { title: string; description?: string; amount: number; autoInvoice?: boolean }) => {
+    const res = await apiClient<import('../types/projects').Project>(`/projects/${id}/revisions`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  createSprint: async (payload: any) => {
+    const res = await apiClient<import('../types/projects').Sprint>('/projects/sprints', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  createTask: async (payload: any) => {
+    const res = await apiClient<import('../types/projects').Task>('/projects/tasks', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  updateTask: async (id: string, payload: any) => {
+    const res = await apiClient<import('../types/projects').Task>(`/projects/tasks/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  updateTaskStatus: async (id: string, status: string) => {
+    const res = await apiClient<import('../types/projects').Task>(`/projects/tasks/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+    return res.data;
+  },
+};
+
+export const invoicingApi = {
+  getStats: async () => {
+    const res = await apiClient<import('../types/invoicing').InvoicingStats>('/invoices/stats');
+    return res.data;
+  },
+
+  getInvoices: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    type?: string;
+    isRevision?: string;
+    clientId?: string;
+    projectId?: string;
+    search?: string;
+  }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    if (params?.status && params.status !== 'ALL') searchParams.append('status', params.status);
+    if (params?.type && params.type !== 'ALL') searchParams.append('type', params.type);
+    if (params?.isRevision !== undefined && params.isRevision !== 'ALL') searchParams.append('isRevision', params.isRevision);
+    if (params?.clientId && params.clientId !== 'ALL') searchParams.append('clientId', params.clientId);
+    if (params?.projectId && params.projectId !== 'ALL') searchParams.append('projectId', params.projectId);
+    if (params?.search) searchParams.append('search', params.search);
+
+    const qs = searchParams.toString();
+    const res = await apiClient<any>(`/invoices${qs ? `?${qs}` : ''}`);
+    const items = Array.isArray(res.data)
+      ? res.data
+      : Array.isArray(res.data?.data)
+      ? res.data.data
+      : [];
+    return { data: items as import('../types/invoicing').Invoice[], meta: res.meta || res.data?.meta };
+  },
+
+  getInvoiceById: async (id: string) => {
+    const res = await apiClient<import('../types/invoicing').Invoice>(`/invoices/${id}`);
+    return res.data;
+  },
+
+  createInvoice: async (payload: any) => {
+    const res = await apiClient<import('../types/invoicing').Invoice>('/invoices', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  generateInstallments: async (payload: any) => {
+    const res = await apiClient<import('../types/invoicing').Invoice[]>('/invoices/installments', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  recordPayment: async (id: string, payload: any) => {
+    const res = await apiClient<{ invoice: import('../types/invoicing').Invoice; payment: import('../types/invoicing').PaymentRecord }>(`/invoices/${id}/payments`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  sendInvoiceEmail: async (id: string) => {
+    const res = await apiClient<{ message: string }>(`/invoices/${id}/send-email`, {
+      method: 'POST',
+    });
+    return res.data;
+  },
+};
+
+
