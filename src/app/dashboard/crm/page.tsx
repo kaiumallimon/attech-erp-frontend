@@ -211,9 +211,15 @@ export default function CrmPage() {
         priority: priorityFilter,
         limit: 100,
       });
-      setLeads(res.data || []);
+      const list = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray((res as any)?.data)
+        ? (res as any).data
+        : [];
+      setLeads(list);
     } catch (err) {
       console.error('Failed to load leads', err);
+      setLeads([]);
     }
   }, [searchQuery, serviceFilter, budgetFilter, priorityFilter]);
 
@@ -221,9 +227,15 @@ export default function CrmPage() {
   const fetchClients = useCallback(async () => {
     try {
       const res = await crmApi.getClients({ limit: 50 });
-      setClients(res.data || []);
+      const list = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray((res as any)?.data)
+        ? (res as any).data
+        : [];
+      setClients(list);
     } catch (err) {
       console.error('Failed to load clients', err);
+      setClients([]);
     }
   }, []);
 
@@ -414,8 +426,9 @@ export default function CrmPage() {
       [LeadStage.NURTURING]: [],
     };
 
-    leads.forEach((lead) => {
-      if (map[lead.status]) {
+    const leadList = Array.isArray(leads) ? leads : [];
+    leadList.forEach((lead) => {
+      if (lead && lead.status && map[lead.status]) {
         map[lead.status].push(lead);
       }
     });

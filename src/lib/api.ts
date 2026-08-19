@@ -812,8 +812,13 @@ export const crmApi = {
     if (params?.assignedTo && params.assignedTo !== 'ALL') searchParams.set('assignedTo', params.assignedTo);
 
     const qs = searchParams.toString();
-    const res = await apiClient<import('../types/crm').CrmLead[]>(`/crm/leads${qs ? `?${qs}` : ''}`);
-    return res;
+    const res = await apiClient<any>(`/crm/leads${qs ? `?${qs}` : ''}`);
+    const items = Array.isArray(res.data)
+      ? res.data
+      : Array.isArray(res.data?.data)
+      ? res.data.data
+      : [];
+    return { data: items as import('../types/crm').CrmLead[], meta: res.meta || res.data?.meta };
   },
 
   getLeadById: async (id: string) => {
@@ -874,8 +879,13 @@ export const crmApi = {
     if (params?.tier && params.tier !== 'ALL') searchParams.set('tier', params.tier);
 
     const qs = searchParams.toString();
-    const res = await apiClient<import('../types/crm').CrmClient[]>(`/crm/clients${qs ? `?${qs}` : ''}`);
-    return res;
+    const res = await apiClient<any>(`/crm/clients${qs ? `?${qs}` : ''}`);
+    const items = Array.isArray(res.data)
+      ? res.data
+      : Array.isArray(res.data?.data)
+      ? res.data.data
+      : [];
+    return { data: items as import('../types/crm').CrmClient[], meta: res.meta || res.data?.meta };
   },
 
   createProposal: async (payload: any) => {
