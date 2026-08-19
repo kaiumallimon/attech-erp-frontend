@@ -99,3 +99,125 @@ body {
   color: #0B251A;
   border: 1px solid #AEFF48;
 }
+
+/* ========================================================================= */
+/* Email Rich Text Editor & Live Preview Typography Styles                   */
+/* ========================================================================= */
+.email-editor-canvas,
+.email-preview-canvas {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #374151;
+}
+
+.email-editor-canvas h1,
+.email-preview-canvas h1 {
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.03em !important;
+  color: #111827 !important;
+  margin-top: 1.25rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.email-editor-canvas h2,
+.email-preview-canvas h2 {
+  font-size: 1.45rem !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.02em !important;
+  color: #111827 !important;
+  margin-top: 1.25rem !important;
+  margin-bottom: 0.6rem !important;
+}
+
+.email-editor-canvas h3,
+.email-preview-canvas h3 {
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  letter-spacing: -0.01em !important;
+  color: #111827 !important;
+  margin-top: 1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.email-editor-canvas p,
+.email-preview-canvas p {
+  font-size: 0.95rem !important;
+  line-height: 1.65 !important;
+  margin-top: 0.65rem !important;
+  margin-bottom: 0.65rem !important;
+  color: #374151 !important;
+}
+
+.email-editor-canvas ul,
+.email-preview-canvas ul {
+  list-style-type: disc !important;
+  margin: 0.75rem 0 !important;
+  padding-left: 1.5rem !important;
+}
+
+.email-editor-canvas ol,
+.email-preview-canvas ol {
+  list-style-type: decimal !important;
+  margin: 0.75rem 0 !important;
+  padding-left: 1.5rem !important;
+}
+
+.email-editor-canvas li,
+.email-preview-canvas li {
+  margin-bottom: 0.35rem !important;
+}
+
+.email-editor-canvas a,
+.email-preview-canvas a {
+  color: #0B2E23 !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+}
+
+.email-editor-canvas blockquote,
+.email-preview-canvas blockquote {
+  border-left: 4px solid #0B2E23 !important;
+  padding: 0.5rem 1rem !important;
+  margin: 1rem 0 !important;
+  color: #4B5563 !important;
+  font-style: italic !important;
+  background-color: #F9FAFB !important;
+  border-radius: 0 0.5rem 0.5rem 0 !important;
+}
+
+.email-editor-canvas img,
+.email-preview-canvas img {
+  border-radius: 16px !important;
+  max-width: 100% !important;
+  height: auto !important;
+  margin: 1rem 0 !important;
+  display: inline-block !important;
+}
+
+.email-editor-canvas .cta-button,
+.email-preview-canvas .cta-button {
+  display: inline-block !important;
+  background-color: #0B2E23 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  padding: 14px 32px !important;
+  border-radius: 9999px !important;
+  text-decoration: none !important;
+  margin: 20px 0 !important;
+}
+
+.email-editor-canvas .callout-box,
+.email-preview-canvas .callout-box {
+  background-color: #F3F4F6 !important;
+  border-left: 4px solid #0B2E23 !important;
+  padding: 16px 20px !important;
+  border-radius: 12px !important;
+  margin: 20px 0 !important;
+  font-size: 14px !important;
+}
