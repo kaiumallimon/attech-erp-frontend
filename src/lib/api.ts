@@ -6,6 +6,8 @@ import {
   UserProfile,
   CdnUsageStats,
   CdnResourceItem,
+  AuditLogItem,
+  AuditStats,
 } from '../types/auth';
 import { env } from './env';
 
@@ -396,5 +398,96 @@ export const cdnApi = {
       }
     );
     return res.data;
+  },
+};
+
+export const auditApi = {
+  getLogs: async (params?: {
+    search?: string;
+    action?: string;
+    resource?: string;
+    status?: string;
+    severity?: string;
+    ipAddress?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.action && params.action !== 'all') searchParams.set('action', params.action);
+    if (params?.resource && params.resource !== 'all') searchParams.set('resource', params.resource);
+    if (params?.status && params.status !== 'ALL') searchParams.set('status', params.status);
+    if (params?.severity && params.severity !== 'ALL') searchParams.set('severity', params.severity);
+    if (params?.ipAddress) searchParams.set('ipAddress', params.ipAddress);
+    if (params?.startDate) searchParams.set('startDate', params.startDate);
+    if (params?.endDate) searchParams.set('endDate', params.endDate);
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+
+    const qs = searchParams.toString();
+    const res = await apiClient<AuditLogItem[]>(
+      `/audit/logs${qs ? `?${qs}` : ''}`
+    );
+    return res;
+  },
+
+  getStats: async () => {
+    const res = await apiClient<AuditStats>('/audit/stats');
+    return res.data;
+  },
+
+  exportLogs: async (format: 'json' | 'csv' = 'json', params?: {
+    action?: string;
+    resource?: string;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+  }) => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('format', format);
+    if (params?.action && params.action !== 'all') searchParams.set('action', params.action);
+    if (params?.resource && params.resource !== 'all') searchParams.set('resource', params.resource);
+    if (params?.status && params.status !== 'ALL') searchParams.set('status', params.status);
+    if (params?.startDate) searchParams.set('startDate', params.startDate);
+    if (params?.endDate) searchParams.set('endDate', params.endDate);
+
+    const qs = searchParams.toString();
+    const url = `${API_BASE_URL}/audit/export?${qs}`;
+    const token = getStoredAccessToken();
+
+    const response = await fetch(url, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (format === 'csv') {
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `security-audit-trail-${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return;
+    }
+
+    const data = await response.json();
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = `security-audit-trail-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   },
 };

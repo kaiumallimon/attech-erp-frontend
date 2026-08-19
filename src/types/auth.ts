@@ -114,3 +114,43 @@ export interface CdnResourceItem {
   secureUrl: string;
   folder?: string;
 }
+
+export interface AuditDeviceInfo {
+  browser?: string;
+  os?: string;
+  deviceType?: string;
+}
+
+export interface AuditLogItem {
+  _id: string;
+  userId?: string;
+  userEmail?: string;
+  userRole?: string;
+  action: string;
+  resource: string;
+  resourceId?: string;
+  description?: string;
+  metadata?: Record<string, any>;
+  ipAddress?: string;
+  ipMasked?: string;
+  userAgent?: string;
+  deviceInfo?: AuditDeviceInfo;
+  status: 'SUCCESS' | 'FAILURE';
+  severity: 'INFO' | 'WARNING' | 'CRITICAL';
+  errorMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AuditStats {
+  totalEvents: number;
+  totalFailures: number;
+  successRate: number;
+  events24h: number;
+  failures24h: number;
+  activeActors24h: number;
+  topActions: { action: string; count: number }[];
+  severityBreakdown: Record<string, number>;
+  recentAlerts: AuditLogItem[];
+}
+
