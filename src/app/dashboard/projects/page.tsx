@@ -28,8 +28,9 @@ import {
   Activity,
   Receipt,
   Filter,
+  Trash2,
 } from 'lucide-react';
-import { projectsApi, crmApi } from '@/lib/api';
+import { projectsApi, crmApi, usersApi } from '@/lib/api';
 import {
   Project,
   Sprint,
@@ -43,6 +44,7 @@ import {
   SprintStatus,
 } from '@/types/projects';
 import { CrmClient, CrmLead } from '@/types/crm';
+import { UserProfile } from '@/types/auth';
 import { HeroSelect } from '@/components/ui/hero-select';
 import { useAuth } from '@/context/auth-context';
 
@@ -117,6 +119,7 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [clients, setClients] = useState<CrmClient[]>([]);
   const [leads, setLeads] = useState<CrmLead[]>([]);
+  const [employees, setEmployees] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'kanban' | 'projects' | 'tasks'>('kanban');
 
@@ -154,6 +157,7 @@ export default function ProjectsPage() {
     description: '',
     projectId: '',
     sprintId: '',
+    assigneeId: '',
     priority: TaskPriority.MEDIUM,
     estimatedHours: 8,
   });
@@ -162,6 +166,7 @@ export default function ProjectsPage() {
     name: '',
     projectId: '',
     goal: '',
+    leadId: '',
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
   });
@@ -179,17 +184,19 @@ export default function ProjectsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [statsRes, projectsRes, clientsRes, leadsRes] = await Promise.all([
+      const [statsRes, projectsRes, clientsRes, leadsRes, usersRes] = await Promise.all([
         projectsApi.getStats().catch(() => null),
         projectsApi.getProjects({ limit: 100 }),
         crmApi.getClients({ limit: 100 }).catch(() => ({ data: [] })),
         crmApi.getLeads({ status: 'WON', limit: 50 }).catch(() => ({ data: [] })),
+        usersApi.getAll({ limit: 100 }).catch(() => []),
       ]);
 
       if (statsRes) setStats(statsRes);
       setProjects(Array.isArray(projectsRes.data) ? projectsRes.data : []);
       setClients(Array.isArray(clientsRes.data) ? clientsRes.data : []);
       setLeads(Array.isArray(leadsRes.data) ? leadsRes.data : []);
+      setEmployees(Array.isArray(usersRes) ? usersRes : []);
     } catch (err) {
       console.error('Failed to fetch projects data:', err);
     } finally {
@@ -298,8 +305,13 @@ export default function ProjectsPage() {
     setSubmitting(true);
     try {
       await projectsApi.createTask({
-        ...taskForm,
+        title: taskForm.title,
+        description: taskForm.description || undefined,
         projectId: targetProjId,
+        sprintId: taskForm.sprintId || undefined,
+        assigneeId: taskForm.assigneeId || undefined,
+        priority: taskForm.priority,
+        estimatedHours: taskForm.estimatedHours,
       });
       setIsTaskModalOpen(false);
       setTaskForm({
@@ -307,6 +319,7 @@ export default function ProjectsPage() {
         description: '',
         projectId: '',
         sprintId: '',
+        assigneeId: '',
         priority: TaskPriority.MEDIUM,
         estimatedHours: 8,
       });
@@ -353,6 +366,20 @@ export default function ProjectsPage() {
       fetchData();
     } catch (err) {
       console.error('Failed to update task status:', err);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this task?')) return;
+    try {
+      await projectsApi.deleteTask(taskId);
+      if (selectedProject) {
+        handleOpenDetail(selectedProject);
+      }
+      fetchData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete task');
     }
   };
 
@@ -620,11 +647,43 @@ export default function ProjectsPage() {
                           </p>
                         )}
 
+                        {/* Assignee & Sprint Badges */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {t.assigneeId ? (
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] text-emerald-800 font-bold">
+                              <div className="size-3.5 rounded-full bg-[#0B2E23] text-white text-[8px] flex items-center justify-center font-bold">
+                                {t.assigneeId.firstName?.[0] || 'U'}
+                              </div>
+                              <span className="truncate max-w-[85px]">{t.assigneeId.firstName} {t.assigneeId.lastName?.[0]}.</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-[10px] text-slate-400 font-medium">
+                              <Users className="size-3 text-slate-400" />
+                              <span>Unassigned</span>
+                            </div>
+                          )}
+
+                          {t.sprintId && (
+                            <span className="px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-[9px] font-bold text-indigo-700 truncate max-w-[90px]">
+                              {typeof t.sprintId === 'object' ? t.sprintId.name : 'Sprint'}
+                            </span>
+                          )}
+                        </div>
+
                         <div className="flex items-center justify-between pt-1 border-t border-[#E5E7EB]/60 text-[10px] text-slate-400">
                           <span className="font-mono">{t.estimatedHours || 0}h est.</span>
 
-                          {/* Quick Advance Button */}
+                          {/* Quick Actions (Delete + Advance) */}
                           <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={(e) => handleDeleteTask(t._id, e)}
+                              title="Delete Task"
+                              className="p-1 rounded-full hover:bg-red-50 text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="size-3" />
+                            </button>
+
                             {st !== TaskStatus.DONE && (
                               <button
                                 type="button"
@@ -698,7 +757,7 @@ export default function ProjectsPage() {
 
               <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
                 <span className="text-[11px] font-medium">
-                  {p.revisions?.length || 0} Revisions • {p.tasks?.length || 0} Tasks
+                  {p.sprints?.length || 0} Sprints • {p.tasks?.length || 0} Tasks
                 </span>
                 <span className="text-[11px] font-bold text-[#0B2E23] flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                   Open Hub →
@@ -762,11 +821,23 @@ export default function ProjectsPage() {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
                 <button
                   type="button"
+                  onClick={() => {
+                    setSprintForm((prev) => ({ ...prev, projectId: selectedProject._id }));
+                    setIsSprintModalOpen(true);
+                  }}
+                  className="flex-1 py-2.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                >
+                  <Calendar className="size-4 text-indigo-700" />
+                  <span>+ Plan New Sprint</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setIsRevisionModalOpen(true)}
                   className="flex-1 py-2.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                 >
                   <Sparkles className="size-4 text-amber-700" />
-                  <span>+ Log Project Revision</span>
+                  <span>+ Log Scope Revision</span>
                 </button>
 
                 <button
@@ -778,8 +849,43 @@ export default function ProjectsPage() {
                   className="flex-1 py-2.5 rounded-full bg-[#0B2E23] hover:bg-[#08221a] text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                 >
                   <Plus className="size-4 text-[#AEFF48]" />
-                  <span>+ Add Sprint Task</span>
+                  <span>+ Add Task</span>
                 </button>
+              </div>
+
+              {/* Sprints Cycle Section */}
+              <div className="space-y-3 pt-4 border-t border-[#E5E7EB]">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-extrabold text-[#0B251A] uppercase tracking-wider flex items-center gap-2">
+                    <Calendar className="size-4 text-indigo-700" />
+                    <span>Active & Planned Sprints ({selectedProject.sprints?.length || 0})</span>
+                  </h4>
+                </div>
+
+                <div className="space-y-2.5">
+                  {(selectedProject.sprints || []).map((sp) => (
+                    <div
+                      key={sp._id}
+                      className="p-3.5 rounded-2xl bg-indigo-50/50 border border-indigo-100 flex items-start justify-between gap-3"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h5 className="text-xs font-bold text-indigo-950">{sp.name}</h5>
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-100 text-indigo-800">
+                            {sp.status}
+                          </span>
+                        </div>
+                        {sp.goal && <p className="text-xs text-indigo-900/80 leading-relaxed">{sp.goal}</p>}
+                        <div className="flex items-center gap-2 text-[10px] text-slate-500 pt-0.5">
+                          <span>📅 {new Date(sp.startDate).toLocaleDateString()} – {new Date(sp.endDate).toLocaleDateString()}</span>
+                          {sp.leadId && (
+                            <span className="font-bold text-indigo-900">• Lead: {sp.leadId.firstName} {sp.leadId.lastName}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Revisions Manager Section */}
@@ -843,11 +949,26 @@ export default function ProjectsPage() {
                     >
                       <div className="space-y-0.5">
                         <span className="text-xs font-bold text-slate-800">{t.title}</span>
-                        <span className="text-[10px] text-slate-400 block">{t.estimatedHours || 0} hrs estimated</span>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                          <span>{t.estimatedHours || 0} hrs</span>
+                          {t.assigneeId && (
+                            <span className="text-emerald-700 font-bold">• Assigned to: {t.assigneeId.firstName} {t.assigneeId.lastName}</span>
+                          )}
+                        </div>
                       </div>
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${TASK_STAGE_CONFIG[t.status]?.bg || 'bg-slate-100'}`}>
-                        {TASK_STAGE_CONFIG[t.status]?.label || t.status}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${TASK_STAGE_CONFIG[t.status]?.bg || 'bg-slate-100'}`}>
+                          {TASK_STAGE_CONFIG[t.status]?.label || t.status}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteTask(t._id, e)}
+                          title="Delete Task"
+                          className="p-1 rounded-full hover:bg-red-50 text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1056,13 +1177,16 @@ export default function ProjectsPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 3: CREATE SPRINT TASK MODAL                                         */}
+      {/* MODAL 3: CREATE SPRINT TASK MODAL (WITH EMPLOYEE & SPRINT ASSIGNMENT)     */}
       {/* ========================================================================= */}
       {isTaskModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
           <div className="bg-white rounded-4xl border border-[#E5E7EB] shadow-2xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
-              <h3 className="text-base font-extrabold text-[#0B251A]">Add Sprint Task</h3>
+              <div>
+                <h3 className="text-base font-extrabold text-[#0B251A]">Add Sprint Task</h3>
+                <p className="text-xs text-slate-400">Assign deliverable to a sprint and team member.</p>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsTaskModalOpen(false)}
@@ -1082,6 +1206,38 @@ export default function ProjectsPage() {
                   onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
                   placeholder="e.g. Implement JWT Refresh Rotation"
                   className="w-full p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0B2E23]"
+                />
+              </div>
+
+              {/* Assignee Employee Selector */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Assignee Employee</label>
+                <HeroSelect
+                  value={taskForm.assigneeId}
+                  onChange={(val) => setTaskForm({ ...taskForm, assigneeId: val })}
+                  options={[
+                    { value: '', label: 'Unassigned (Assign Later)' },
+                    ...employees.map((e) => ({
+                      value: e.id,
+                      label: `${e.firstName} ${e.lastName} (${e.role || 'Staff'})`,
+                    })),
+                  ]}
+                />
+              </div>
+
+              {/* Sprint Cycle Selector */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Assign to Sprint</label>
+                <HeroSelect
+                  value={taskForm.sprintId}
+                  onChange={(val) => setTaskForm({ ...taskForm, sprintId: val })}
+                  options={[
+                    { value: '', label: 'General Backlog (No Sprint)' },
+                    ...(currentProject?.sprints || []).map((s) => ({
+                      value: s._id,
+                      label: `${s.name} (${s.status})`,
+                    })),
+                  ]}
                 />
               </div>
 
@@ -1136,6 +1292,149 @@ export default function ProjectsPage() {
                   className="px-5 py-1.5 rounded-full bg-[#0B2E23] hover:bg-[#08221a] text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {submitting ? 'Adding...' : 'Add Task'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 4: CREATE SPRINT MODAL (WITH SPRINT LEAD ASSIGNMENT)                */}
+      {/* ========================================================================= */}
+      {isSprintModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="bg-white rounded-4xl border border-[#E5E7EB] shadow-2xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+              <div>
+                <h3 className="text-base font-extrabold text-[#0B251A]">Plan New Sprint Cycle</h3>
+                <p className="text-xs text-slate-400">Configure sprint duration and assign a sprint lead.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSprintModalOpen(false)}
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const targetProjId = sprintForm.projectId || currentProject?._id;
+                if (!targetProjId) {
+                  alert('Please select a project');
+                  return;
+                }
+                setSubmitting(true);
+                try {
+                  await projectsApi.createSprint({
+                    name: sprintForm.name,
+                    goal: sprintForm.goal || undefined,
+                    leadId: sprintForm.leadId || undefined,
+                    startDate: sprintForm.startDate,
+                    endDate: sprintForm.endDate,
+                    projectId: targetProjId,
+                  });
+                  setIsSprintModalOpen(false);
+                  setSprintForm({
+                    name: '',
+                    projectId: '',
+                    goal: '',
+                    leadId: '',
+                    startDate: new Date().toISOString().split('T')[0],
+                    endDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+                  });
+                  if (selectedProject) {
+                    handleOpenDetail(selectedProject);
+                  }
+                  fetchData();
+                } catch (err: any) {
+                  alert(err.message || 'Failed to create sprint');
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+              className="space-y-3"
+            >
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Sprint Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={sprintForm.name}
+                  onChange={(e) => setSprintForm({ ...sprintForm, name: e.target.value })}
+                  placeholder="e.g. Sprint 2 - AI Integration Engine"
+                  className="w-full p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0B2E23]"
+                />
+              </div>
+
+              {/* Sprint Lead Selector */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Sprint Lead / Lead Engineer</label>
+                <HeroSelect
+                  value={sprintForm.leadId}
+                  onChange={(val) => setSprintForm({ ...sprintForm, leadId: val })}
+                  options={[
+                    { value: '', label: 'Select Sprint Lead' },
+                    ...employees.map((e) => ({
+                      value: e.id,
+                      label: `${e.firstName} ${e.lastName} (${e.role || 'Tech Lead'})`,
+                    })),
+                  ]}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Start Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={sprintForm.startDate}
+                    onChange={(e) => setSprintForm({ ...sprintForm, startDate: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0B2E23]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">End Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={sprintForm.endDate}
+                    onChange={(e) => setSprintForm({ ...sprintForm, endDate: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0B2E23]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Sprint Goal</label>
+                <textarea
+                  rows={2}
+                  value={sprintForm.goal}
+                  onChange={(e) => setSprintForm({ ...sprintForm, goal: e.target.value })}
+                  placeholder="Key milestones and deliverable targets for this sprint cycle..."
+                  className="w-full p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0B2E23]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsSprintModalOpen(false)}
+                  className="px-4 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-5 py-1.5 rounded-full bg-[#0B2E23] hover:bg-[#08221a] text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {submitting ? 'Planning...' : 'Create Sprint'}
                 </button>
               </div>
             </form>

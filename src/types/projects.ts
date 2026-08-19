@@ -85,6 +85,20 @@ export interface Sprint {
   status: SprintStatus;
   startDate: string;
   endDate: string;
+  leadId?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatar?: string;
+  };
+  assignedMemberIds?: Array<{
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatar?: string;
+  }>;
   velocityHours?: number;
   createdAt: string;
 }
@@ -94,7 +108,11 @@ export interface Task {
   title: string;
   description?: string;
   projectId: string;
-  sprintId?: string;
+  sprintId?: {
+    _id: string;
+    name: string;
+    status: string;
+  } | string;
   status: TaskStatus;
   priority: TaskPriority;
   assigneeId?: {

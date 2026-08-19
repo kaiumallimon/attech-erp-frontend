@@ -989,6 +989,13 @@ export const projectsApi = {
     });
     return res.data;
   },
+
+  deleteTask: async (id: string) => {
+    const res = await apiClient<{ success: boolean; message: string; taskId: string }>(`/projects/tasks/${id}`, {
+      method: 'DELETE',
+    });
+    return res.data;
+  },
 };
 
 export const invoicingApi = {
