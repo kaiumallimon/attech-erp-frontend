@@ -222,6 +222,14 @@ export const authApi = {
       clearStoredTokens();
     }
   },
+
+  changePassword: async (passwords: { currentPassword: string; newPassword: string }) => {
+    const res = await apiClient<{ success: boolean }>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify(passwords),
+    });
+    return res.data;
+  },
 };
 
 export const usersApi = {
@@ -320,6 +328,13 @@ export const usersApi = {
       method: 'DELETE',
     });
   },
+
+  bulkDelete: async (ids: string[]) => {
+    return apiClient<{ deletedCount: number }>(`/users/bulk-delete`, {
+      method: 'POST',
+      body: JSON.stringify({ ids }),
+    });
+  },
 };
 
 export const cdnApi = {
@@ -367,6 +382,17 @@ export const cdnApi = {
       `/cdn/resources/${publicId}?resourceType=${resourceType}`,
       {
         method: 'DELETE',
+      }
+    );
+    return res.data;
+  },
+
+  bulkDelete: async (publicIds: string[], resourceType: string = 'image') => {
+    const res = await apiClient<{ successCount: number; total: number }>(
+      `/cdn/bulk-delete?resourceType=${resourceType}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ publicIds }),
       }
     );
     return res.data;

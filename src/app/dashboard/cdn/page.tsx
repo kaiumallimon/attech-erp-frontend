@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, Skeleton, Button, Spinner } from '@heroui/react';
 import {
   PaginationRoot,
@@ -87,6 +87,11 @@ export default function CdnManagementPage() {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+
+  // Multi-Selection State (3-State Checkbox: Unselected, Indeterminate, Selected)
+  const [selectedAssetIds, setSelectedAssetIds] = useState<Set<string>>(new Set());
+  const masterCheckboxRef = useRef<HTMLInputElement>(null);
 
   // Upload Form State
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -192,6 +197,52 @@ export default function CdnManagementPage() {
       await fetchUsage();
     } catch (err: any) {
       showToast(err.message || 'Failed to delete asset.', 'error');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // 3-State Checkbox Master Logic
+  const isAllSelected = resources.length > 0 && selectedAssetIds.size === resources.length;
+  const isIndeterminate = selectedAssetIds.size > 0 && selectedAssetIds.size < resources.length;
+
+  useEffect(() => {
+    if (masterCheckboxRef.current) {
+      masterCheckboxRef.current.indeterminate = isIndeterminate;
+    }
+  }, [isIndeterminate]);
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedAssetIds(new Set());
+    } else {
+      setSelectedAssetIds(new Set(resources.map((r) => r.publicId)));
+    }
+  };
+
+  const toggleSelectAsset = (publicId: string) => {
+    const next = new Set(selectedAssetIds);
+    if (next.has(publicId)) {
+      next.delete(publicId);
+    } else {
+      next.add(publicId);
+    }
+    setSelectedAssetIds(next);
+  };
+
+  // Bulk Delete Handler
+  const handleBulkDelete = async () => {
+    if (selectedAssetIds.size === 0) return;
+    setIsUploading(true);
+    try {
+      const res = await cdnApi.bulkDelete(Array.from(selectedAssetIds));
+      showToast(`${res?.successCount || selectedAssetIds.size} CDN assets deleted successfully.`);
+      setSelectedAssetIds(new Set());
+      setIsBulkDeleteModalOpen(false);
+      await fetchResources();
+      await fetchUsage();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete selected assets.', 'error');
     } finally {
       setIsUploading(false);
     }
@@ -460,6 +511,34 @@ export default function CdnManagementPage() {
           </div>
         </div>
 
+        {/* Bulk Action Bar */}
+        {selectedAssetIds.size > 0 && (
+          <div className="px-6 py-3 bg-[#0B251A] text-white flex items-center justify-between animate-fadeIn border-b border-black/10">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-[#AEFF48]">
+                {selectedAssetIds.size} of {resources.length} assets selected
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedAssetIds(new Set())}
+                className="text-[11px] text-slate-300 hover:text-white underline cursor-pointer"
+              >
+                Deselect All
+              </button>
+            </div>
+            {(isAdmin || isSuperAdmin) && (
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(true)}
+                className="h-8 px-4 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+              >
+                <Trash2 className="size-3.5" />
+                <span>Delete Selected ({selectedAssetIds.size})</span>
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Section B: Asset Explorer (Grid or Table) */}
         <div className="p-6">
           {isLoading ? (
@@ -493,11 +572,14 @@ export default function CdnManagementPage() {
               {resources.map((item) => {
                 const isImage = item.resourceType === 'image';
                 const displayName = item.publicId.split('/').pop() || item.publicId;
+                const isSelected = selectedAssetIds.has(item.publicId);
 
                 return (
                   <div
                     key={item.publicId}
-                    className="group relative bg-[#F9FAFB] hover:bg-white border border-[#E5E7EB] hover:border-slate-300 rounded-3xl p-3 flex flex-col justify-between transition-all shadow-2xs hover:shadow-md"
+                    className={`group relative bg-[#F9FAFB] hover:bg-white border rounded-3xl p-3 flex flex-col justify-between transition-all shadow-2xs hover:shadow-md ${
+                      isSelected ? 'border-[#0B2E23] bg-emerald-50/30 ring-2 ring-[#0B2E23]/20' : 'border-[#E5E7EB] hover:border-slate-300'
+                    }`}
                   >
                     {/* Media Thumbnail */}
                     <div
@@ -526,6 +608,22 @@ export default function CdnManagementPage() {
                       <span className="absolute top-2 left-2 text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-black/60 text-white backdrop-blur-xs">
                         {item.format}
                       </span>
+
+                      {/* Selection Checkbox */}
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSelectAsset(item.publicId);
+                        }}
+                        className="absolute top-2 right-2 p-1 rounded-md bg-black/40 backdrop-blur-xs cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelectAsset(item.publicId)}
+                          className="size-3.5 rounded border-white text-[#0B2E23] focus:ring-0 cursor-pointer accent-[#0B2E23]"
+                        />
+                      </div>
                     </div>
 
                     {/* Meta Info */}
@@ -590,6 +688,16 @@ export default function CdnManagementPage() {
               <table className="w-full text-left text-xs text-slate-600">
                 <thead className="bg-[#F9FAFB] text-[10.5px] uppercase font-bold tracking-wider text-slate-400 border-b border-[#E5E7EB]">
                   <tr>
+                    <th className="py-3 pl-4 pr-2 w-10">
+                      <input
+                        ref={masterCheckboxRef}
+                        type="checkbox"
+                        checked={isAllSelected}
+                        onChange={toggleSelectAll}
+                        className="size-4 rounded-md border-[#E5E7EB] text-[#0B2E23] focus:ring-[#0B2E23] cursor-pointer accent-[#0B2E23]"
+                        title={isAllSelected ? 'Deselect All' : 'Select All'}
+                      />
+                    </th>
                     <th className="py-3 px-4">Asset</th>
                     <th className="py-3 px-4">Folder</th>
                     <th className="py-3 px-4">Format</th>
@@ -600,24 +708,39 @@ export default function CdnManagementPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB]">
-                  {resources.map((item) => (
-                    <tr key={item.publicId} className="hover:bg-[#FAFAF9]/80 transition-colors">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="size-9 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-[#E5E7EB]">
-                            {item.resourceType === 'image' ? (
-                              <img src={item.secureUrl} alt={item.publicId} className="size-full object-cover" />
-                            ) : (
-                              <div className="size-full flex items-center justify-center text-slate-400">
-                                <FileText className="size-4" />
-                              </div>
-                            )}
+                  {resources.map((item) => {
+                    const isSelected = selectedAssetIds.has(item.publicId);
+                    return (
+                      <tr
+                        key={item.publicId}
+                        className={`hover:bg-[#FAFAF9]/80 transition-colors ${
+                          isSelected ? 'bg-emerald-50/40' : ''
+                        }`}
+                      >
+                        <td className="py-3 pl-4 pr-2 w-10">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectAsset(item.publicId)}
+                            className="size-4 rounded-md border-[#E5E7EB] text-[#0B2E23] focus:ring-[#0B2E23] cursor-pointer accent-[#0B2E23]"
+                          />
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="size-9 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-[#E5E7EB]">
+                              {item.resourceType === 'image' ? (
+                                <img src={item.secureUrl} alt={item.publicId} className="size-full object-cover" />
+                              ) : (
+                                <div className="size-full flex items-center justify-center text-slate-400">
+                                  <FileText className="size-4" />
+                                </div>
+                              )}
+                            </div>
+                            <span className="font-bold text-[#111111] truncate max-w-xs" title={item.publicId}>
+                              {item.publicId.split('/').pop()}
+                            </span>
                           </div>
-                          <span className="font-bold text-[#111111] truncate max-w-xs" title={item.publicId}>
-                            {item.publicId.split('/').pop()}
-                          </span>
-                        </div>
-                      </td>
+                        </td>
                       <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
                         {item.folder || item.publicId.split('/').slice(0, -1).join('/') || 'root'}
                       </td>
@@ -668,7 +791,8 @@ export default function CdnManagementPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  );
+                })}
                 </tbody>
               </table>
             </div>
@@ -684,6 +808,7 @@ export default function CdnManagementPage() {
             </span>
 
             <HeroSelect
+              placement="top"
               value={itemsPerPage}
               onChange={(val) => {
                 setItemsPerPage(val);
@@ -984,6 +1109,45 @@ export default function CdnManagementPage() {
               >
                 {isUploading ? <Spinner size="sm" color="accent" /> : <Trash2 className="size-4" />}
                 <span>{isUploading ? 'Deleting...' : 'Confirm Delete'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 4: BULK DELETE CONFIRMATION MODAL                                   */}
+      {/* ========================================================================= */}
+      {isBulkDeleteModalOpen && selectedAssetIds.size > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-4xl border border-[#E5E7EB] shadow-2xl max-w-md w-full p-6 space-y-5 animate-scaleUp">
+            <div className="flex items-center gap-3 text-red-600">
+              <div className="p-2 rounded-2xl bg-red-50">
+                <AlertTriangle className="size-6" />
+              </div>
+              <h3 className="text-base font-bold text-[#111111]">Bulk Delete CDN Assets?</h3>
+            </div>
+
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Are you sure you want to permanently delete <strong className="text-slate-900">{selectedAssetIds.size} assets</strong> from Cloudinary CDN? Any page or document embedding these assets will break.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                className="h-11 px-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isUploading}
+                onClick={handleBulkDelete}
+                className="h-11 px-6 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center gap-2 disabled:opacity-50"
+              >
+                {isUploading ? <Spinner size="sm" color="accent" /> : <Trash2 className="size-4" />}
+                <span>{isUploading ? 'Deleting...' : `Delete ${selectedAssetIds.size} Assets`}</span>
               </button>
             </div>
           </div>

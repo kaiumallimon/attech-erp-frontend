@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Card,
   PaginationRoot,
@@ -160,7 +160,12 @@ export default function UsersManagementPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+
+  // Multi-Selection State (3-State Checkbox: Unselected, Indeterminate, Selected)
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
+  const masterCheckboxRef = useRef<HTMLInputElement>(null);
 
   // Form states
   const [createForm, setCreateForm] = useState({
@@ -348,6 +353,52 @@ export default function UsersManagementPage() {
       await fetchStats();
     } catch (err: any) {
       showToast(err.message || 'Failed to delete user account.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 3-State Checkbox Master Logic
+  const isAllSelected = users.length > 0 && selectedUserIds.size === users.length;
+  const isIndeterminate = selectedUserIds.size > 0 && selectedUserIds.size < users.length;
+
+  useEffect(() => {
+    if (masterCheckboxRef.current) {
+      masterCheckboxRef.current.indeterminate = isIndeterminate;
+    }
+  }, [isIndeterminate]);
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedUserIds(new Set());
+    } else {
+      setSelectedUserIds(new Set(users.map((u) => u.id)));
+    }
+  };
+
+  const toggleSelectUser = (id: string) => {
+    const next = new Set(selectedUserIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    setSelectedUserIds(next);
+  };
+
+  // Handler: Bulk Delete Users
+  const handleBulkDelete = async () => {
+    if (selectedUserIds.size === 0) return;
+    setIsSubmitting(true);
+    try {
+      const res = await usersApi.bulkDelete(Array.from(selectedUserIds));
+      showToast(`${res.data?.deletedCount || selectedUserIds.size} staff accounts deleted successfully.`);
+      setSelectedUserIds(new Set());
+      setIsBulkDeleteModalOpen(false);
+      await fetchUsers();
+      await fetchStats();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete selected users.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -600,12 +651,50 @@ export default function UsersManagementPage() {
           </div>
         </div>
 
+        {/* Bulk Action Bar */}
+        {selectedUserIds.size > 0 && (
+          <div className="px-6 py-3 bg-[#0B251A] text-white flex items-center justify-between animate-fadeIn border-b border-black/10">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-[#AEFF48]">
+                {selectedUserIds.size} of {users.length} staff selected
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedUserIds(new Set())}
+                className="text-[11px] text-slate-300 hover:text-white underline cursor-pointer"
+              >
+                Deselect All
+              </button>
+            </div>
+            {(isAdmin || isSuperAdmin) && (
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(true)}
+                className="h-8 px-4 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+              >
+                <Trash2 className="size-3.5" />
+                <span>Delete Selected ({selectedUserIds.size})</span>
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Section B: Staff Directory Table */}
         <div className="overflow-x-auto w-full">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-[#E5E7EB] bg-[#FAFAF9]/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                <th className="py-4 px-6">Staff Member</th>
+                <th className="py-4 pl-6 pr-2 w-10">
+                  <input
+                    ref={masterCheckboxRef}
+                    type="checkbox"
+                    checked={isAllSelected}
+                    onChange={toggleSelectAll}
+                    className="size-4 rounded-md border-[#E5E7EB] text-[#0B2E23] focus:ring-[#0B2E23] cursor-pointer accent-[#0B2E23]"
+                    title={isAllSelected ? 'Deselect All' : 'Select All'}
+                  />
+                </th>
+                <th className="py-4 px-4">Staff Member</th>
                 <th className="py-4 px-6">Department</th>
                 <th className="py-4 px-6">Role & RBAC Authority</th>
                 <th className="py-4 px-6">Account Status</th>
@@ -617,7 +706,8 @@ export default function UsersManagementPage() {
               {isLoading ? (
                 Array.from({ length: pageSize }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td className="py-4 px-6">
+                    <td className="py-4 pl-6 pr-2 w-10"><Skeleton className="size-4 rounded-md" /></td>
+                    <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
                         <Skeleton className="size-10 rounded-full" />
                         <div className="space-y-1.5">
@@ -635,7 +725,7 @@ export default function UsersManagementPage() {
                 ))
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-16 text-center text-slate-400">
+                  <td colSpan={7} className="py-16 text-center text-slate-400">
                     <Users className="size-10 mx-auto text-slate-300 mb-2" />
                     <p className="text-sm font-bold text-slate-700">No staff members found</p>
                     <p className="text-xs text-slate-400 mt-1">Try adjusting your search terms or filter selections.</p>
@@ -659,11 +749,27 @@ export default function UsersManagementPage() {
                   };
                   const initials = `${u.firstName?.[0] || 'U'}${u.lastName?.[0] || ''}`.toUpperCase();
                   const isSuper = u.role === Role.SUPER_ADMIN;
+                  const isSelected = selectedUserIds.has(u.id);
 
                   return (
-                    <tr key={u.id} className="hover:bg-[#FAFAF9]/60 transition-colors group">
+                    <tr
+                      key={u.id}
+                      className={`hover:bg-[#FAFAF9]/60 transition-colors group ${
+                        isSelected ? 'bg-emerald-50/40' : ''
+                      }`}
+                    >
+                      {/* 3-State Checkbox Cell */}
+                      <td className="py-4 pl-6 pr-2 w-10">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelectUser(u.id)}
+                          className="size-4 rounded-md border-[#E5E7EB] text-[#0B2E23] focus:ring-[#0B2E23] cursor-pointer accent-[#0B2E23]"
+                        />
+                      </td>
+
                       {/* Staff Member Info */}
-                      <td className="py-4 px-6">
+                      <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
                           <div className="relative">
                             <div className="size-10 rounded-full overflow-hidden bg-[#0B251A] text-[#AEFF48] font-bold text-xs flex items-center justify-center shadow-xs shrink-0">
@@ -864,6 +970,7 @@ export default function UsersManagementPage() {
               <span>Items per page:</span>
               <HeroSelect
                 size="sm"
+                placement="top"
                 value={String(pageSize)}
                 onChange={(val) => {
                   setPageSize(Number(val));
@@ -1290,6 +1397,43 @@ export default function UsersManagementPage() {
                 className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-full transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? 'Deleting...' : 'Delete Account'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 5: Bulk Delete Confirmation                                         */}
+      {/* ========================================================================= */}
+      {isBulkDeleteModalOpen && selectedUserIds.size > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fadeIn">
+          <div className="w-full max-w-sm rounded-4xl bg-white p-6 shadow-2xl border border-[#E5E7EB]">
+            <div className="flex items-center gap-3 text-red-600 mb-3">
+              <div className="p-2.5 rounded-2xl bg-red-50 text-red-600">
+                <Trash2 className="size-5" />
+              </div>
+              <h3 className="text-base font-bold text-[#111111]">Bulk Delete Staff Accounts</h3>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Are you sure you want to permanently delete <strong className="text-slate-900">{selectedUserIds.size} staff accounts</strong>? All associated sessions and permissions will be permanently revoked. This action cannot be undone.
+            </p>
+
+            <div className="mt-6 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={handleBulkDelete}
+                className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-full transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+              >
+                {isSubmitting ? 'Deleting...' : `Delete ${selectedUserIds.size} Accounts`}
               </button>
             </div>
           </div>
