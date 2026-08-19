@@ -43,8 +43,20 @@ export const setStoredTokens = (tokens: AuthTokens) => {
     localStorage.setItem(TOKEN_KEY, tokens.accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
   } catch {}
-  Cookies.set(TOKEN_KEY, tokens.accessToken, { expires: 7, path: '/', secure: false, sameSite: 'lax' });
-  Cookies.set(REFRESH_TOKEN_KEY, tokens.refreshToken, { expires: 7, path: '/', secure: false, sameSite: 'lax' });
+
+  const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+  Cookies.set(TOKEN_KEY, tokens.accessToken, {
+    expires: 1 / 96, // 15 mins
+    path: '/',
+    sameSite: 'lax',
+    secure: isHttps,
+  });
+  Cookies.set(REFRESH_TOKEN_KEY, tokens.refreshToken, {
+    expires: 7, // 7 days
+    path: '/',
+    sameSite: 'lax',
+    secure: isHttps,
+  });
 };
 
 export const clearStoredTokens = () => {
@@ -57,84 +69,125 @@ export const clearStoredTokens = () => {
   Cookies.remove(REFRESH_TOKEN_KEY, { path: '/' });
 };
 
-export async function apiClient<T = any>(
+interface RequestOptions extends RequestInit {
+  requiresAuth?: boolean;
+}
+
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface UserStats {
+  totalUsers: number;
+  activeUsers: number;
+  suspendedUsers: number;
+  inactiveUsers: number;
+  adminCount: number;
+  departmentsCount: number;
+}
+
+export interface ApiResponse<T> {
+  success?: boolean;
+  message?: string;
+  data: T;
+  meta?: PaginationMeta;
+}
+
+export async function apiClient<T>(
   endpoint: string,
-  options: RequestInit = {},
-): Promise<{ success: boolean; data: T; message?: string }> {
-  const token = getStoredAccessToken();
+  options: RequestOptions = {}
+): Promise<ApiResponse<T>> {
+  const { requiresAuth = true, headers: customHeaders, ...rest } = options;
+  const headers = new Headers(customHeaders);
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-  };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (!headers.has('Content-Type') && !(rest.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
   }
 
-  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  if (requiresAuth) {
+    const token = getStoredAccessToken();
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+  }
 
-  const response = await fetch(url, {
-    ...options,
+  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+
+  let response = await fetch(url, {
+    ...rest,
     headers,
   });
 
-  const resJson = await response.json().catch(() => ({
-    success: false,
-    message: 'Failed to parse response',
-  }));
+  // Handle Token Refresh automatically on 401
+  if (response.status === 401 && requiresAuth) {
+    const refreshToken = getStoredRefreshToken();
+    if (refreshToken) {
+      try {
+        const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        });
 
-  if (!response.ok) {
-    // If token expired, try refreshing
-    if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh') && !endpoint.includes('/auth/magic-link')) {
-      const refreshToken = getStoredRefreshToken();
-      if (refreshToken) {
-        try {
-          const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refreshToken }),
-          });
-
-          if (refreshRes.ok) {
-            const refreshData = await refreshRes.json();
-            if (refreshData.data?.accessToken) {
-              setStoredTokens(refreshData.data);
-              // Retry original request
-              headers['Authorization'] = `Bearer ${refreshData.data.accessToken}`;
-              const retryRes = await fetch(url, { ...options, headers });
-              return retryRes.json();
-            }
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          const tokens = refreshData.data?.tokens || refreshData.data;
+          if (tokens?.accessToken) {
+            setStoredTokens(tokens);
+            headers.set('Authorization', `Bearer ${tokens.accessToken}`);
+            response = await fetch(url, {
+              ...rest,
+              headers,
+            });
+          } else {
+            clearStoredTokens();
           }
-        } catch {
+        } else {
           clearStoredTokens();
         }
+      } catch {
+        clearStoredTokens();
       }
+    } else {
+      clearStoredTokens();
     }
-
-    const errorMessage = Array.isArray(resJson.message)
-      ? resJson.message.join(', ')
-      : resJson.message || 'An unexpected error occurred';
-
-    throw new Error(errorMessage);
   }
 
-  return resJson;
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.message || `Request failed with status ${response.status}`);
+  }
+
+  return data;
 }
 
 export const authApi = {
-  login: async (credentials: { email: string; password: string }): Promise<AuthLoginResponse> => {
+  login: async (
+    emailOrData: string | { email: string; password?: string },
+    password?: string
+  ): Promise<AuthLoginResponse> => {
+    const payload =
+      typeof emailOrData === 'string'
+        ? { email: emailOrData, password }
+        : emailOrData;
+
     const res = await apiClient<AuthLoginResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify(credentials),
+      body: JSON.stringify(payload),
+      requiresAuth: false,
     });
     return res.data;
   },
 
-  requestMagicLink: async (email: string): Promise<{ email: string }> => {
+  requestMagicLink: async (email: string) => {
     const res = await apiClient<{ email: string }>('/auth/magic-link', {
       method: 'POST',
       body: JSON.stringify({ email }),
+      requiresAuth: false,
     });
     return res.data;
   },
@@ -143,6 +196,7 @@ export const authApi = {
     const res = await apiClient<AuthLoginResponse>('/auth/magic-link/verify', {
       method: 'POST',
       body: JSON.stringify({ token }),
+      requiresAuth: false,
     });
     return res.data;
   },
@@ -164,15 +218,37 @@ export const authApi = {
 };
 
 export const usersApi = {
-  getAll: async (params?: { search?: string; role?: string; status?: string; page?: number; limit?: number }) => {
+  getAll: async (params?: {
+    search?: string;
+    role?: string;
+    status?: string;
+    department?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    page?: number;
+    limit?: number;
+  }) => {
     const query = new URLSearchParams();
     if (params?.search) query.set('search', params.search);
     if (params?.role) query.set('role', params.role);
     if (params?.status) query.set('status', params.status);
+    if (params?.department) query.set('department', params.department);
+    if (params?.sortBy) query.set('sortBy', params.sortBy);
+    if (params?.sortOrder) query.set('sortOrder', params.sortOrder);
     if (params?.page) query.set('page', String(params.page));
     if (params?.limit) query.set('limit', String(params.limit));
 
     const res = await apiClient<UserProfile[]>(`/users?${query.toString()}`);
+    return res;
+  },
+
+  getStats: async () => {
+    const res = await apiClient<UserStats>('/users/stats');
+    return res;
+  },
+
+  getById: async (id: string) => {
+    const res = await apiClient<UserProfile>(`/users/${id}`);
     return res;
   },
 
@@ -192,17 +268,39 @@ export const usersApi = {
     });
   },
 
+  update: async (
+    userId: string,
+    updateData: {
+      firstName?: string;
+      lastName?: string;
+      department?: string;
+      jobTitle?: string;
+      phone?: string;
+    }
+  ) => {
+    return apiClient<UserProfile>(`/users/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updateData),
+    });
+  },
+
   updateRole: async (userId: string, role: string, customPermissions?: string[]) => {
-    return apiClient(`/users/${userId}/role`, {
+    return apiClient<UserProfile>(`/users/${userId}/role`, {
       method: 'PATCH',
       body: JSON.stringify({ role, customPermissions }),
     });
   },
 
   updateStatus: async (userId: string, status: string) => {
-    return apiClient(`/users/${userId}/status`, {
+    return apiClient<UserProfile>(`/users/${userId}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
+    });
+  },
+
+  delete: async (userId: string) => {
+    return apiClient<{ deleted: boolean }>(`/users/${userId}`, {
+      method: 'DELETE',
     });
   },
 };
