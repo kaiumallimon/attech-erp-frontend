@@ -8,6 +8,7 @@ import {
   getStoredAccessToken,
   getStoredRefreshToken,
   performTokenRefresh,
+  isTokenExpired,
   setStoredTokens,
   clearStoredTokens,
 } from '../lib/api';
@@ -39,9 +40,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let token = getStoredAccessToken();
     const refreshToken = getStoredRefreshToken();
 
-    // If access token is missing/expired but refresh token is present, proactively rotate tokens!
-    if (!token && refreshToken) {
-      token = await performTokenRefresh();
+    // If access token is missing or expired but refresh token exists, proactively rotate tokens!
+    if ((!token || isTokenExpired(token)) && refreshToken) {
+      const refreshed = await performTokenRefresh();
+      if (refreshed) {
+        token = refreshed;
+      }
     }
 
     if (!token) {
@@ -55,10 +59,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const meData = await authApi.getMe();
       setUser(meData.user);
       setRbac(meData.rbac);
-    } catch {
-      clearStoredTokens();
-      setUser(null);
-      setRbac(null);
+    } catch (err: any) {
+      // ONLY clear tokens and reset session if server returned explicit 401 Unauthorized,
+      // NOT if the request was aborted by rapid page reloads or temporary network glitch!
+      const errorMsg = String(err?.message || '').toLowerCase();
+      const isExplicitAuthFailure =
+        errorMsg.includes('401') ||
+        errorMsg.includes('unauthorized') ||
+        errorMsg.includes('token is invalid') ||
+        errorMsg.includes('has expired');
+
+      if (isExplicitAuthFailure) {
+        clearStoredTokens();
+        setUser(null);
+        setRbac(null);
+      }
     } finally {
       setIsLoading(false);
     }

@@ -85,6 +85,29 @@ export const clearStoredTokens = () => {
   Cookies.remove(REFRESH_TOKEN_KEY, { path: '/' });
 };
 
+// Decodes JWT exp without external dependency to proactively avoid expired calls
+export const isTokenExpired = (token: string | null): boolean => {
+  if (!token) return true;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    if (!payload.exp) return false;
+    // Buffer by 10 seconds to refresh slightly ahead of expiry
+    return Date.now() >= payload.exp * 1000 - 10000;
+  } catch {
+    return false;
+  }
+};
+
 // Singleton in-flight token refresh promise queue to prevent concurrent race conditions
 let refreshPromise: Promise<string | null> | null = null;
 
@@ -115,10 +138,14 @@ export const performTokenRefresh = async (): Promise<string | null> => {
           return tokens.accessToken as string;
         }
       }
-      clearStoredTokens();
+
+      // ONLY clear tokens if the backend explicitly rejected the refresh token (401/403)
+      if (refreshResponse.status === 401 || refreshResponse.status === 403) {
+        clearStoredTokens();
+      }
       return null;
     } catch {
-      clearStoredTokens();
+      // On network error or aborted fetch (e.g. rapid page reload), DO NOT clear tokens!
       return null;
     } finally {
       refreshPromise = null;
@@ -167,7 +194,15 @@ export async function apiClient<T>(
   }
 
   if (requiresAuth) {
-    const token = getStoredAccessToken();
+    let token = getStoredAccessToken();
+    // Proactively refresh if accessToken is expired
+    if (isTokenExpired(token)) {
+      const refreshedToken = await performTokenRefresh();
+      if (refreshedToken) {
+        token = refreshedToken;
+      }
+    }
+
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);
     }
@@ -189,8 +224,6 @@ export async function apiClient<T>(
         ...rest,
         headers,
       });
-    } else {
-      clearStoredTokens();
     }
   }
 
