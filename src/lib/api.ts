@@ -62,7 +62,7 @@ export const setStoredTokens = (tokens: AuthTokens) => {
 
   const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
   Cookies.set(TOKEN_KEY, tokens.accessToken, {
-    expires: 1 / 96, // 15 mins
+    expires: 1, // 1 day
     path: '/',
     sameSite: 'lax',
     secure: isHttps,
@@ -83,6 +83,49 @@ export const clearStoredTokens = () => {
   } catch {}
   Cookies.remove(TOKEN_KEY, { path: '/' });
   Cookies.remove(REFRESH_TOKEN_KEY, { path: '/' });
+};
+
+// Singleton in-flight token refresh promise queue to prevent concurrent race conditions
+let refreshPromise: Promise<string | null> | null = null;
+
+export const performTokenRefresh = async (): Promise<string | null> => {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
+  const refreshToken = getStoredRefreshToken();
+  if (!refreshToken) {
+    clearStoredTokens();
+    return null;
+  }
+
+  refreshPromise = (async () => {
+    try {
+      const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json();
+        const tokens = refreshData.data?.tokens || refreshData.data;
+        if (tokens?.accessToken) {
+          setStoredTokens(tokens);
+          return tokens.accessToken as string;
+        }
+      }
+      clearStoredTokens();
+      return null;
+    } catch {
+      clearStoredTokens();
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 };
 
 interface RequestOptions extends RequestInit {
@@ -137,36 +180,15 @@ export async function apiClient<T>(
     headers,
   });
 
-  // Handle Token Refresh automatically on 401
+  // Handle Token Refresh automatically on 401 using mutex queue
   if (response.status === 401 && requiresAuth) {
-    const refreshToken = getStoredRefreshToken();
-    if (refreshToken) {
-      try {
-        const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken }),
-        });
-
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          const tokens = refreshData.data?.tokens || refreshData.data;
-          if (tokens?.accessToken) {
-            setStoredTokens(tokens);
-            headers.set('Authorization', `Bearer ${tokens.accessToken}`);
-            response = await fetch(url, {
-              ...rest,
-              headers,
-            });
-          } else {
-            clearStoredTokens();
-          }
-        } else {
-          clearStoredTokens();
-        }
-      } catch {
-        clearStoredTokens();
-      }
+    const newAccessToken = await performTokenRefresh();
+    if (newAccessToken) {
+      headers.set('Authorization', `Bearer ${newAccessToken}`);
+      response = await fetch(url, {
+        ...rest,
+        headers,
+      });
     } else {
       clearStoredTokens();
     }

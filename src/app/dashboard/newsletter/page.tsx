@@ -18,6 +18,8 @@ import {
   RefreshCw,
   Clock,
   Download,
+  Undo,
+  Redo,
   Image as ImageIcon,
   Link as LinkIcon,
   Bold,
@@ -604,166 +606,209 @@ export default function NewsletterPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Column 1: Rich Text Editor */}
             <Card className="bg-white border border-[#E5E7EB] rounded-4xl shadow-xs overflow-hidden flex flex-col h-[700px]">
-              {/* Formatting Toolbar */}
-              <div className="p-3 border-b border-[#E5E7EB] bg-[#FAFAF9] flex flex-wrap items-center gap-1.5 shrink-0">
-                {/* Headings */}
-                <div className="flex items-center bg-white rounded-lg border border-[#E5E7EB] p-0.5">
-                  <button
-                    type="button"
-                    onClick={() => execFormat('formatBlock', '<h1>')}
-                    className="p-1.5 rounded hover:bg-slate-100 text-slate-700"
-                    title="Heading 1"
-                  >
-                    <Heading1 className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => execFormat('formatBlock', '<h2>')}
-                    className="p-1.5 rounded hover:bg-slate-100 text-slate-700"
-                    title="Heading 2"
-                  >
-                    <Heading2 className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => execFormat('formatBlock', '<h3>')}
-                    className="p-1.5 rounded hover:bg-slate-100 text-slate-700"
-                    title="Heading 3"
-                  >
-                    <Heading3 className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => execFormat('formatBlock', '<p>')}
-                    className="px-2 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded"
-                    title="Paragraph"
-                  >
-                    P
-                  </button>
+              {/* Two-Tier Formatting Toolbar */}
+              <div className="border-b border-[#E5E7EB] bg-[#FAFAF9] shrink-0 divide-y divide-[#E5E7EB]/70">
+                {/* Line 1: Undo / Redo & Media & Email Component Blocks */}
+                <div className="px-3.5 py-2 flex flex-wrap items-center justify-between gap-2">
+                  {/* Left: Undo & Redo Controls */}
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex items-center bg-white rounded-lg border border-[#E5E7EB] p-0.5 shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => execFormat('undo')}
+                        className="px-2.5 py-1 rounded hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+                        title="Undo (Ctrl+Z)"
+                      >
+                        <Undo className="size-3.5 text-slate-600" />
+                        <span>Undo</span>
+                      </button>
+                      <div className="h-4 w-px bg-slate-200" />
+                      <button
+                        type="button"
+                        onClick={() => execFormat('redo')}
+                        className="px-2.5 py-1 rounded hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+                        title="Redo (Ctrl+Y)"
+                      >
+                        <Redo className="size-3.5 text-slate-600" />
+                        <span>Redo</span>
+                      </button>
+                    </div>
+
+                    <div className="h-4 w-px bg-slate-300 mx-1 hidden sm:block" />
+
+                    {/* Media & Link Buttons */}
+                    <div className="flex items-center bg-white rounded-lg border border-[#E5E7EB] p-0.5 shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          fetchCdnAssets();
+                          setIsImageModalOpen(true);
+                        }}
+                        className="px-2 py-1 rounded hover:bg-emerald-50 text-[#0B2E23] font-bold flex items-center gap-1.5 text-xs cursor-pointer transition-colors"
+                        title="Insert Cloudinary CDN Image"
+                      >
+                        <ImageIcon className="size-3.5 text-emerald-700" />
+                        <span>CDN Image</span>
+                      </button>
+                      <div className="h-4 w-px bg-slate-200" />
+                      <button
+                        type="button"
+                        onClick={() => setIsLinkModalOpen(true)}
+                        className="px-2 py-1 rounded hover:bg-slate-100 text-slate-700 font-medium flex items-center gap-1.5 text-xs cursor-pointer transition-colors"
+                        title="Insert Hyperlink"
+                      >
+                        <LinkIcon className="size-3.5" />
+                        <span>Link</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Right: Quick Email Layout Blocks */}
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => insertComponentBlock('cta')}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-[#0B2E23] text-[11px] font-bold border border-emerald-200 transition-colors cursor-pointer"
+                      title="Insert CTA Button"
+                    >
+                      + CTA Button
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertComponentBlock('callout')}
+                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold transition-colors cursor-pointer"
+                      title="Insert Callout Box"
+                    >
+                      + Callout
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertComponentBlock('hero')}
+                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold transition-colors cursor-pointer hidden sm:block"
+                      title="Insert Hero Banner"
+                    >
+                      + Banner
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertComponentBlock('divider')}
+                      className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold transition-colors cursor-pointer"
+                      title="Insert Divider"
+                    >
+                      —
+                    </button>
+                  </div>
                 </div>
 
-                {/* Inline Formatting */}
-                <div className="flex items-center bg-white rounded-lg border border-[#E5E7EB] p-0.5">
-                  <button
-                    type="button"
-                    onClick={() => execFormat('bold')}
-                    className="p-1.5 rounded hover:bg-slate-100 text-slate-700"
-                    title="Bold"
-                  >
-                    <Bold className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => execFormat('italic')}
-                    className="p-1.5 rounded hover:bg-slate-100 text-slate-700"
-                    title="Italic"
-                  >
-                    <Italic className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => execFormat('underline')}
-                    className="p-1.5 rounded hover:bg-slate-100 text-slate-700"
-                    title="Underline"
-                  >
-                    <Underline className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => execFormat('strikeThrough')}
-                    className="p-1.5 rounded hover:bg-slate-100 text-slate-700"
-                    title="Strikethrough"
-                  >
-                    <Strikethrough className="size-4" />
-                  </button>
-                </div>
+                {/* Line 2: Headings & Text Formatting */}
+                <div className="px-3.5 py-2 flex flex-wrap items-center gap-1.5">
+                  {/* Headings */}
+                  <div className="flex items-center bg-white rounded-lg border border-[#E5E7EB] p-0.5 shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => execFormat('formatBlock', '<h1>')}
+                      className="p-1.5 rounded hover:bg-slate-100 text-slate-700 cursor-pointer transition-colors"
+                      title="Heading 1"
+                    >
+                      <Heading1 className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execFormat('formatBlock', '<h2>')}
+                      className="p-1.5 rounded hover:bg-slate-100 text-slate-700 cursor-pointer transition-colors"
+                      title="Heading 2"
+                    >
+                      <Heading2 className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execFormat('formatBlock', '<h3>')}
+                      className="p-1.5 rounded hover:bg-slate-100 text-slate-700 cursor-pointer transition-colors"
+                      title="Heading 3"
+                    >
+                      <Heading3 className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execFormat('formatBlock', '<p>')}
+                      className="px-2 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded cursor-pointer transition-colors"
+                      title="Paragraph"
+                    >
+                      P
+                    </button>
+                  </div>
 
-                {/* Lists & Alignment */}
-                <div className="flex items-center bg-white rounded-lg border border-[#E5E7EB] p-0.5">
-                  <button
-                    type="button"
-                    onClick={() => execFormat('insertUnorderedList')}
-                    className="p-1.5 rounded hover:bg-slate-100 text-slate-700"
-                    title="Bullet List"
-                  >
-                    <List className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => execFormat('insertOrderedList')}
-                    className="p-1.5 rounded hover:bg-slate-100 text-slate-700"
-                    title="Numbered List"
-                  >
-                    <ListOrdered className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => execFormat('justifyLeft')}
-                    className="p-1.5 rounded hover:bg-slate-100 text-slate-700"
-                    title="Align Left"
-                  >
-                    <AlignLeft className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => execFormat('justifyCenter')}
-                    className="p-1.5 rounded hover:bg-slate-100 text-slate-700"
-                    title="Align Center"
-                  >
-                    <AlignCenter className="size-4" />
-                  </button>
-                </div>
+                  {/* Inline Formatting */}
+                  <div className="flex items-center bg-white rounded-lg border border-[#E5E7EB] p-0.5 shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => execFormat('bold')}
+                      className="p-1.5 rounded hover:bg-slate-100 text-slate-700 cursor-pointer transition-colors"
+                      title="Bold"
+                    >
+                      <Bold className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execFormat('italic')}
+                      className="p-1.5 rounded hover:bg-slate-100 text-slate-700 cursor-pointer transition-colors"
+                      title="Italic"
+                    >
+                      <Italic className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execFormat('underline')}
+                      className="p-1.5 rounded hover:bg-slate-100 text-slate-700 cursor-pointer transition-colors"
+                      title="Underline"
+                    >
+                      <Underline className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execFormat('strikeThrough')}
+                      className="p-1.5 rounded hover:bg-slate-100 text-slate-700 cursor-pointer transition-colors"
+                      title="Strikethrough"
+                    >
+                      <Strikethrough className="size-4" />
+                    </button>
+                  </div>
 
-                {/* Media & Links */}
-                <div className="flex items-center bg-white rounded-lg border border-[#E5E7EB] p-0.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      fetchCdnAssets();
-                      setIsImageModalOpen(true);
-                    }}
-                    className="p-1.5 rounded hover:bg-emerald-50 text-[#0B2E23] font-bold flex items-center gap-1 text-xs"
-                    title="Insert Cloudinary CDN Image"
-                  >
-                    <ImageIcon className="size-4 text-emerald-700" />
-                    <span>Image</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsLinkModalOpen(true)}
-                    className="p-1.5 rounded hover:bg-slate-100 text-slate-700"
-                    title="Insert Hyperlink"
-                  >
-                    <LinkIcon className="size-4" />
-                  </button>
-                </div>
-
-                {/* Quick Pre-built Blocks */}
-                <div className="flex items-center gap-1 ml-auto">
-                  <button
-                    type="button"
-                    onClick={() => insertComponentBlock('cta')}
-                    className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-[#0B2E23] text-[11px] font-bold border border-emerald-200 transition-colors"
-                    title="Insert CTA Button"
-                  >
-                    + Button
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertComponentBlock('callout')}
-                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold transition-colors"
-                    title="Insert Callout Box"
-                  >
-                    + Callout
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertComponentBlock('divider')}
-                    className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold transition-colors"
-                    title="Insert Divider"
-                  >
-                    —
-                  </button>
+                  {/* Lists & Alignment */}
+                  <div className="flex items-center bg-white rounded-lg border border-[#E5E7EB] p-0.5 shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => execFormat('insertUnorderedList')}
+                      className="p-1.5 rounded hover:bg-slate-100 text-slate-700 cursor-pointer transition-colors"
+                      title="Bullet List"
+                    >
+                      <List className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execFormat('insertOrderedList')}
+                      className="p-1.5 rounded hover:bg-slate-100 text-slate-700 cursor-pointer transition-colors"
+                      title="Numbered List"
+                    >
+                      <ListOrdered className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execFormat('justifyLeft')}
+                      className="p-1.5 rounded hover:bg-slate-100 text-slate-700 cursor-pointer transition-colors"
+                      title="Align Left"
+                    >
+                      <AlignLeft className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execFormat('justifyCenter')}
+                      className="p-1.5 rounded hover:bg-slate-100 text-slate-700 cursor-pointer transition-colors"
+                      title="Align Center"
+                    >
+                      <AlignCenter className="size-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
 

@@ -3,7 +3,14 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserProfile, RbacInfo, Role } from '../types/auth';
-import { authApi, getStoredAccessToken, setStoredTokens, clearStoredTokens } from '../lib/api';
+import {
+  authApi,
+  getStoredAccessToken,
+  getStoredRefreshToken,
+  performTokenRefresh,
+  setStoredTokens,
+  clearStoredTokens,
+} from '../lib/api';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -29,7 +36,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const router = useRouter();
 
   const refreshProfile = useCallback(async () => {
-    const token = getStoredAccessToken();
+    let token = getStoredAccessToken();
+    const refreshToken = getStoredRefreshToken();
+
+    // If access token is missing/expired but refresh token is present, proactively rotate tokens!
+    if (!token && refreshToken) {
+      token = await performTokenRefresh();
+    }
+
     if (!token) {
       setUser(null);
       setRbac(null);
