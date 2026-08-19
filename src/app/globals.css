@@ -221,3 +221,46 @@ body {
   margin: 20px 0 !important;
   font-size: 14px !important;
 }
+
+/* ========================================================================= */
+/* High-Performance Shimmer Wave Animation for Skeletons                     */
+/* ========================================================================= */
+@keyframes shimmerWave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer-skeleton,
+[data-slot="base"],
+[data-slot="content"],
+.skeleton-shimmer,
+.shimmer-anim {
+  background: linear-gradient(
+    90deg,
+    #E8E5DF 0%,
+    #F3F1ED 25%,
+    #FFFFFF 50%,
+    #F3F1ED 75%,
+    #E8E5DF 100%
+  ) !important;
+  background-size: 200% 100% !important;
+  animation: shimmerWave 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+}
+
+/* Dark variant for dark hero covers */
+.shimmer-dark,
+.shimmer-skeleton-dark {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.16) 50%,
+    rgba(255, 255, 255, 0.06) 100%
+  ) !important;
+  background-size: 200% 100% !important;
+  animation: shimmerWave 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+}
+
