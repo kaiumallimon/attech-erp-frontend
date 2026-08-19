@@ -8,6 +8,9 @@ import {
   CdnResourceItem,
   AuditLogItem,
   AuditStats,
+  ApiKeyItem,
+  ApiKeyStats,
+  CreateApiKeyPayload,
 } from '../types/auth';
 import { env } from './env';
 
@@ -489,5 +492,135 @@ export const auditApi = {
     document.body.appendChild(a);
     a.click();
     a.remove();
+  },
+};
+
+export const apiKeysApi = {
+  list: async (params?: {
+    search?: string;
+    status?: string;
+    scope?: string;
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.status && params.status !== 'ALL') searchParams.set('status', params.status);
+    if (params?.scope && params.scope !== 'all') searchParams.set('scope', params.scope);
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+
+    const qs = searchParams.toString();
+    const res = await apiClient<ApiKeyItem[]>(`/api-keys${qs ? `?${qs}` : ''}`);
+    return res;
+  },
+
+  getStats: async () => {
+    const res = await apiClient<ApiKeyStats>('/api-keys/stats');
+    return res.data;
+  },
+
+  create: async (payload: CreateApiKeyPayload) => {
+    const res = await apiClient<{ apiKey: ApiKeyItem; rawSecret: string }>('/api-keys', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  updateStatus: async (id: string, status: 'ACTIVE' | 'REVOKED') => {
+    const res = await apiClient<ApiKeyItem>(`/api-keys/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+    return res.data;
+  },
+
+  regenerateSecret: async (id: string) => {
+    const res = await apiClient<{ apiKey: ApiKeyItem; rawSecret: string }>(
+      `/api-keys/${id}/regenerate-secret`,
+      {
+        method: 'POST',
+      }
+    );
+    return res.data;
+  },
+
+  delete: async (id: string) => {
+    const res = await apiClient<{ id: string }>(`/api-keys/${id}`, {
+      method: 'DELETE',
+    });
+    return res.data;
+  },
+};
+
+export const publicApi = {
+  subscribeNewsletter: async (
+    apiKey: string,
+    apiSecret: string,
+    email: string,
+    source: string = 'website'
+  ) => {
+    const response = await fetch(`${API_BASE_URL}/public/newsletter/subscribe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+        'X-API-SECRET': apiSecret,
+      },
+      body: JSON.stringify({ email, source }),
+    });
+    const json = await response.json();
+    if (!response.ok) {
+      throw new Error(json.message || 'Newsletter subscription failed');
+    }
+    return json;
+  },
+
+  getCareers: async (apiKey: string, apiSecret: string) => {
+    const response = await fetch(`${API_BASE_URL}/public/careers`, {
+      method: 'GET',
+      headers: {
+        'X-API-KEY': apiKey,
+        'X-API-SECRET': apiSecret,
+      },
+    });
+    const json = await response.json();
+    if (!response.ok) {
+      throw new Error(json.message || 'Failed to fetch careers');
+    }
+    return json;
+  },
+
+  applyCareer: async (
+    apiKey: string,
+    apiSecret: string,
+    data: {
+      jobId: string;
+      fullName: string;
+      email: string;
+      portfolioUrl?: string;
+      resumeUrl?: string;
+      coverLetter?: string;
+    }
+  ) => {
+    const response = await fetch(`${API_BASE_URL}/public/careers/apply`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+        'X-API-SECRET': apiSecret,
+      },
+      body: JSON.stringify(data),
+    });
+    const json = await response.json();
+    if (!response.ok) {
+      throw new Error(json.message || 'Career application failed');
+    }
+    return json;
   },
 };

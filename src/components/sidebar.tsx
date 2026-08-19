@@ -15,6 +15,7 @@ import {
   LogOut,
   Sparkles,
   Cloud,
+  KeyRound,
 } from 'lucide-react';
 import { useAuth } from '../context/auth-context';
 import AtTechLogo from './ui/attech-logo';
@@ -39,6 +40,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     { name: 'Staff & Roles', href: '/dashboard/users', icon: Users },
     { name: 'CDN & Storage', href: '/dashboard/cdn', icon: Cloud },
     { name: 'Security & Audit', href: '/dashboard/audit', icon: ShieldAlert },
+    { name: 'API Keys & Access', href: '/dashboard/api-keys', icon: KeyRound },
   ];
 
   const operationsNav = [

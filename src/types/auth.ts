@@ -154,3 +154,48 @@ export interface AuditStats {
   recentAlerts: AuditLogItem[];
 }
 
+export type ApiKeyStatus = 'ACTIVE' | 'REVOKED' | 'EXPIRED';
+
+export interface ApiKeyItem {
+  _id: string;
+  name: string;
+  description?: string;
+  key: string;
+  secretPrefix: string;
+  scopes: string[];
+  allowedOrigins?: string[];
+  allowedIps?: string[];
+  status: ApiKeyStatus;
+  expiresAt?: string | null;
+  lastUsedAt?: string | null;
+  lastUsedIp?: string | null;
+  usageCount: number;
+  createdBy?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatar?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiKeyStats {
+  totalKeys: number;
+  activeKeys: number;
+  revokedKeys: number;
+  totalApiRequests: number;
+  topScopes: { scope: string; count: number }[];
+}
+
+export interface CreateApiKeyPayload {
+  name: string;
+  description?: string;
+  scopes: string[];
+  allowedOrigins?: string[];
+  allowedIps?: string[];
+  expiresAt?: string | null;
+}
+
+
