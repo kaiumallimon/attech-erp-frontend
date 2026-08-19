@@ -1,24 +1,77 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { Card, CardHeader, CardContent, CardFooter } from '@heroui/react';
-import { Mail, Lock, Eye, EyeOff, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Card, CardHeader, CardContent } from '@heroui/react';
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  Sparkles,
+  Send,
+  CheckCircle2,
+  KeyRound,
+  Inbox,
+} from 'lucide-react';
 import { useAuth } from '../../context/auth-context';
 import ButtonWithIcon from '../../components/ui/button-with-icon';
 import AtTechLogo from '../../components/ui/attech-logo';
 
-export default function LoginPage() {
-  const { login, isLoading } = useAuth();
+function LoginContent() {
+  const { login, requestMagicLink, isLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [authMode, setAuthMode] = useState<'magic-link' | 'password'>('magic-link');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+
+  // If already authenticated, redirect immediately away from login
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace('/dashboard');
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  useEffect(() => {
+    const urlError = searchParams.get('error');
+    if (urlError) {
+      if (urlError === 'missing_token') {
+        setError('No magic token provided in verification link.');
+      } else {
+        setError(decodeURIComponent(urlError));
+      }
+    }
+  }, [searchParams]);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePasswordlessSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      setError('Please provide your corporate email address');
+      return;
+    }
+
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      await requestMagicLink(email);
+      setMagicLinkSent(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate magic sign-in link. Please check your email.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setError('Please provide both email and password');
@@ -42,9 +95,9 @@ export default function LoginPage() {
     setError(null);
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/auth/google`;
-  };
+  if (!isLoading && isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#FAFAF9]">
@@ -64,119 +117,202 @@ export default function LoginPage() {
 
         {/* Login Card */}
         <Card className="bg-white border border-[#E5E7EB] shadow-xl shadow-black/5 rounded-3xl p-4 text-[#0B251A]">
-          <CardHeader className="flex flex-col gap-1 items-start px-4 pt-4 pb-2">
-            <h2 className="text-xl font-bold text-[#111111] tracking-tight">Sign In</h2>
-            <p className="text-xs text-slate-500">Access your role-based workstation</p>
+          <CardHeader className="flex flex-col gap-2 items-start px-4 pt-4 pb-2">
+            <div className="flex items-center justify-between w-full">
+              <h2 className="text-xl font-bold text-[#111111] tracking-tight">Sign In</h2>
+              {/* Tab Switcher */}
+              <div className="flex items-center bg-[#F3F4F6] p-1 rounded-full text-[11px] font-semibold">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('magic-link');
+                    setMagicLinkSent(false);
+                    setError(null);
+                  }}
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                    authMode === 'magic-link'
+                      ? 'bg-[#0B2E23] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-black'
+                  }`}
+                >
+                  Passwordless
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('password');
+                    setMagicLinkSent(false);
+                    setError(null);
+                  }}
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                    authMode === 'password'
+                      ? 'bg-[#0B2E23] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-black'
+                  }`}
+                >
+                  Password
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500">
+              {authMode === 'magic-link'
+                ? 'Sign in securely without passwords via your corporate email'
+                : 'Enter your credentials to access your agency workstation'}
+            </p>
           </CardHeader>
 
           <CardContent className="px-4 py-4">
             {error && (
               <div className="mb-4 p-3.5 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-700 flex items-start gap-2">
-                <span className="font-bold">Error:</span> {error}
+                <span className="font-bold">Notice:</span> {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5 px-1">Corporate Email</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                    <Mail className="w-4 h-4" />
+            {authMode === 'magic-link' ? (
+              magicLinkSent ? (
+                /* Secure Dispatched Confirmation Screen */
+                <div className="py-4 text-center flex flex-col items-center gap-3 animate-fadeIn">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200">
+                    <Inbox className="w-7 h-7" />
                   </div>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="kaiumallimon5@gmail.com"
-                    className="w-full h-[50px] pl-11 pr-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full text-sm text-[#0B251A] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#0B251A] focus:ring-1 focus:ring-[#0B251A] transition-all"
-                  />
-                </div>
-              </div>
+                  <div>
+                    <h3 className="text-base font-bold text-[#111111]">Check Your Corporate Inbox</h3>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                      We’ve dispatched a secure one-click sign-in link to:
+                    </p>
+                    <p className="text-xs font-bold text-[#0B2E23] mt-1 bg-[#F9FAFB] py-1.5 px-4 rounded-full border border-[#E5E7EB] inline-block">
+                      {email}
+                    </p>
+                  </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1.5 px-1">
-                  <label className="text-xs font-semibold text-slate-700">Password</label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-[#0B2E23] font-semibold hover:underline transition-all"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                    <Lock className="w-4 h-4" />
+                  <div className="p-3 bg-[#F9FAFB] rounded-2xl border border-[#E5E7EB] text-left w-full text-xs text-slate-600 space-y-1.5 mt-1">
+                    <div className="flex items-center gap-1.5 font-semibold text-[#0B251A]">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Security Verification Steps:</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-relaxed pl-5.5">
+                      1. Open the email from <strong>AtTech Operations</strong>.
+                    </p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed pl-5.5">
+                      2. Click <strong>&quot;Sign In to Workstation&quot;</strong> (valid for 15 minutes).
+                    </p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed pl-5.5">
+                      3. Your session will authenticate automatically via Server-Side Rendering.
+                    </p>
                   </div>
-                  <input
-                    type={isVisible ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full h-[50px] pl-11 pr-11 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full text-sm text-[#0B251A] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#0B251A] focus:ring-1 focus:ring-[#0B251A] transition-all"
-                  />
+
                   <button
                     type="button"
-                    onClick={toggleVisibility}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600"
+                    onClick={() => {
+                      setMagicLinkSent(false);
+                    }}
+                    className="text-xs text-slate-500 hover:text-[#0B2E23] font-semibold mt-2 hover:underline cursor-pointer"
                   >
-                    {isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    ← Send to a different email
                   </button>
                 </div>
-              </div>
+              ) : (
+                /* Passwordless Email Input Form */
+                <form onSubmit={handlePasswordlessSubmit} className="flex flex-col gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5 px-1">Corporate Email</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                        <Mail className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="kaiumallimon5@gmail.com"
+                        className="w-full h-[50px] pl-11 pr-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full text-sm text-[#0B251A] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#0B251A] focus:ring-1 focus:ring-[#0B251A] transition-all"
+                      />
+                    </div>
+                  </div>
 
-              {/* Signature Hero Section Button for Login */}
-              <div className="mt-2">
-                <ButtonWithIcon
-                  type="submit"
-                  fullWidth
-                  label="Sign In to Workstation"
-                  loading={isSubmitting || isLoading}
-                  loadingLabel="Authenticating..."
-                  icon={<ArrowRight size={16} strokeWidth={2.5} />}
-                />
-              </div>
-            </form>
+                  <div className="mt-1">
+                    <ButtonWithIcon
+                      type="submit"
+                      fullWidth
+                      label="Send Magic Sign-in Link"
+                      loading={isSubmitting || isLoading}
+                      loadingLabel="Dispatching Link..."
+                      icon={<Send size={16} strokeWidth={2.5} />}
+                    />
+                  </div>
+                </form>
+              )
+            ) : (
+              /* Password Login Form */
+              <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5 px-1">Corporate Email</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                      <Mail className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="kaiumallimon5@gmail.com"
+                      className="w-full h-[50px] pl-11 pr-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full text-sm text-[#0B251A] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#0B251A] focus:ring-1 focus:ring-[#0B251A] transition-all"
+                    />
+                  </div>
+                </div>
 
-            <div className="my-5 flex items-center gap-3">
-              <div className="flex-1 h-[1px] bg-[#E5E7EB]" />
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-bold">or</span>
-              <div className="flex-1 h-[1px] bg-[#E5E7EB]" />
-            </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1.5 px-1">
+                    <label className="text-xs font-semibold text-slate-700">Password</label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs text-[#0B2E23] font-semibold hover:underline transition-all"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                    <input
+                      type={isVisible ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full h-[50px] pl-11 pr-11 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full text-sm text-[#0B251A] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#0B251A] focus:ring-1 focus:ring-[#0B251A] transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={toggleVisibility}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600"
+                    >
+                      {isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
 
-            {/* Google OAuth Button - matching h-[50px] rounded-full size */}
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              className="w-full h-[50px] rounded-full border border-[#E5E7EB] hover:border-[#D1D5DB] bg-white hover:bg-[#F9FAFB] text-[#0B251A] text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2.5 cursor-pointer shadow-sm"
-            >
-              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                />
-              </svg>
-              <span>Continue with Google Workspace</span>
-            </button>
+                <div className="mt-1">
+                  <ButtonWithIcon
+                    type="submit"
+                    fullWidth
+                    label="Sign In with Password"
+                    loading={isSubmitting || isLoading}
+                    loadingLabel="Authenticating..."
+                    icon={<KeyRound size={16} strokeWidth={2.5} />}
+                  />
+                </div>
+              </form>
+            )}
 
             {/* Quick Demo Credentials */}
             <div className="mt-6 p-3 bg-[#F9FAFB] rounded-2xl border border-[#E5E7EB]">
               <div className="flex items-center gap-1.5 text-xs text-slate-600 mb-2 font-medium px-1">
                 <Sparkles className="w-3.5 h-3.5 text-[#0B2E23]" />
-                <span>Super Admin Preset:</span>
+                <span>Super Admin Quick Fill:</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -190,15 +326,20 @@ export default function LoginPage() {
               </div>
             </div>
           </CardContent>
-
-          <CardFooter className="px-4 py-4 bg-[#F9FAFB]/70 border-t border-[#E5E7EB] flex justify-center text-xs text-slate-500 rounded-b-3xl">
-            <span>New agency member?</span>{' '}
-            <Link href="/register" className="ml-1 text-[#0B2E23] font-bold hover:underline">
-              Create account
-            </Link>
-          </CardFooter>
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#FAFAF9]" />
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

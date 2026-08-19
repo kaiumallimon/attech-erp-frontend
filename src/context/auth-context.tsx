@@ -14,15 +14,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (userData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    department?: string;
-    jobTitle?: string;
-    role?: string;
-  }) => Promise<void>;
+  requestMagicLink: (email: string) => Promise<{ email: string }>;
+  verifyMagicLink: (token: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -67,7 +60,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await authApi.login({ email, password });
       setStoredTokens(res.tokens);
       setUser(res.user);
-      // Fetch full me info including resolved permissions
       const meData = await authApi.getMe();
       setRbac(meData.rbac);
       router.push('/dashboard');
@@ -76,18 +68,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (userData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    department?: string;
-    jobTitle?: string;
-    role?: string;
-  }) => {
+  const requestMagicLink = async (email: string) => {
+    return await authApi.requestMagicLink(email);
+  };
+
+  const verifyMagicLink = async (token: string) => {
     setIsLoading(true);
     try {
-      const res = await authApi.register(userData);
+      const res = await authApi.verifyMagicLink(token);
       setStoredTokens(res.tokens);
       setUser(res.user);
       const meData = await authApi.getMe();
@@ -129,7 +117,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated,
         isLoading,
         login,
-        register,
+        requestMagicLink,
+        verifyMagicLink,
         logout,
         refreshProfile,
       }}

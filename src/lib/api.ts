@@ -8,28 +8,52 @@ export const REFRESH_TOKEN_KEY = 'attech_refresh_token';
 
 export const getStoredAccessToken = (): string | null => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(TOKEN_KEY) || Cookies.get(TOKEN_KEY) || null;
+  const local = localStorage.getItem(TOKEN_KEY);
+  if (local) return local;
+
+  const cookieVal = Cookies.get(TOKEN_KEY);
+  if (cookieVal) {
+    try {
+      localStorage.setItem(TOKEN_KEY, cookieVal);
+    } catch {}
+    return cookieVal;
+  }
+  return null;
 };
 
 export const getStoredRefreshToken = (): string | null => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(REFRESH_TOKEN_KEY) || Cookies.get(REFRESH_TOKEN_KEY) || null;
+  const local = localStorage.getItem(REFRESH_TOKEN_KEY);
+  if (local) return local;
+
+  const cookieVal = Cookies.get(REFRESH_TOKEN_KEY);
+  if (cookieVal) {
+    try {
+      localStorage.setItem(REFRESH_TOKEN_KEY, cookieVal);
+    } catch {}
+    return cookieVal;
+  }
+  return null;
 };
 
 export const setStoredTokens = (tokens: AuthTokens) => {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(TOKEN_KEY, tokens.accessToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
-  Cookies.set(TOKEN_KEY, tokens.accessToken, { expires: 7, secure: false, sameSite: 'lax' });
-  Cookies.set(REFRESH_TOKEN_KEY, tokens.refreshToken, { expires: 7, secure: false, sameSite: 'lax' });
+  try {
+    localStorage.setItem(TOKEN_KEY, tokens.accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+  } catch {}
+  Cookies.set(TOKEN_KEY, tokens.accessToken, { expires: 7, path: '/', secure: false, sameSite: 'lax' });
+  Cookies.set(REFRESH_TOKEN_KEY, tokens.refreshToken, { expires: 7, path: '/', secure: false, sameSite: 'lax' });
 };
 
 export const clearStoredTokens = () => {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-  Cookies.remove(TOKEN_KEY);
-  Cookies.remove(REFRESH_TOKEN_KEY);
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  } catch {}
+  Cookies.remove(TOKEN_KEY, { path: '/' });
+  Cookies.remove(REFRESH_TOKEN_KEY, { path: '/' });
 };
 
 export async function apiClient<T = any>(
@@ -61,7 +85,7 @@ export async function apiClient<T = any>(
 
   if (!response.ok) {
     // If token expired, try refreshing
-    if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh')) {
+    if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh') && !endpoint.includes('/auth/magic-link')) {
       const refreshToken = getStoredRefreshToken();
       if (refreshToken) {
         try {
@@ -106,18 +130,18 @@ export const authApi = {
     return res.data;
   },
 
-  register: async (userData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    department?: string;
-    jobTitle?: string;
-    role?: string;
-  }): Promise<{ user: UserProfile; tokens: AuthTokens }> => {
-    const res = await apiClient<{ user: UserProfile; tokens: AuthTokens }>('/auth/register', {
+  requestMagicLink: async (email: string): Promise<{ email: string }> => {
+    const res = await apiClient<{ email: string }>('/auth/magic-link', {
       method: 'POST',
-      body: JSON.stringify(userData),
+      body: JSON.stringify({ email }),
+    });
+    return res.data;
+  },
+
+  verifyMagicLink: async (token: string): Promise<AuthLoginResponse> => {
+    const res = await apiClient<AuthLoginResponse>('/auth/magic-link/verify', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
     });
     return res.data;
   },
@@ -149,6 +173,22 @@ export const usersApi = {
 
     const res = await apiClient<UserProfile[]>(`/users?${query.toString()}`);
     return res;
+  },
+
+  create: async (userData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password?: string;
+    department?: string;
+    jobTitle?: string;
+    role?: string;
+    phone?: string;
+  }) => {
+    return apiClient<UserProfile>('/users', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
   },
 
   updateRole: async (userId: string, role: string, customPermissions?: string[]) => {

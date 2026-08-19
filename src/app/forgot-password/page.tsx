@@ -1,16 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardContent, CardFooter } from '@heroui/react';
 import { Mail, ArrowLeft, CheckCircle2, Send } from 'lucide-react';
+import { useAuth } from '../../context/auth-context';
 import ButtonWithIcon from '../../components/ui/button-with-icon';
 import AtTechLogo from '../../components/ui/attech-logo';
 
 export default function ForgotPasswordPage() {
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthLoading && isAuthenticated) {
+      router.replace('/dashboard');
+    }
+  }, [isAuthLoading, isAuthenticated, router]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +32,10 @@ export default function ForgotPasswordPage() {
       setIsSubmitted(true);
     }, 800);
   };
+
+  if (!isAuthLoading && isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#FAFAF9]">
