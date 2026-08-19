@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { env } from '../../../lib/env';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,10 +18,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  const backendUrl =
-    process.env.INTERNAL_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:8000/api/v1';
+  const backendUrl = env.internalApiUrl;
 
   try {
     const res = await fetch(`${backendUrl}/auth/magic-link/verify`, {

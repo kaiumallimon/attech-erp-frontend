@@ -1,7 +1,8 @@
 import Cookies from 'js-cookie';
 import { AuthLoginResponse, AuthMeResponse, AuthTokens, UserProfile } from '../types/auth';
+import { env } from './env';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = env.apiUrl;
 
 export const TOKEN_KEY = 'attech_access_token';
 export const REFRESH_TOKEN_KEY = 'attech_refresh_token';
