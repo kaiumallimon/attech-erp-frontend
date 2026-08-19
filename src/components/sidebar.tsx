@@ -17,6 +17,7 @@ import {
   Cloud,
   KeyRound,
   Mail,
+  Briefcase,
 } from 'lucide-react';
 import { useAuth } from '../context/auth-context';
 import AtTechLogo from './ui/attech-logo';
@@ -45,6 +46,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   ];
 
   const operationsNav = [
+    { name: 'CRM & Pipeline', href: '/dashboard/crm', icon: Briefcase },
     { name: 'Newsletter & Email', href: '/dashboard/newsletter', icon: Mail },
     { name: 'Projects & SDLC', href: '/dashboard/projects', icon: FolderGit2 },
     { name: 'Finance & Invoicing', href: '/dashboard/finance', icon: Receipt },

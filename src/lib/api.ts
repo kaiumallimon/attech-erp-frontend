@@ -784,3 +784,106 @@ export const newsletterApi = {
     return res.data;
   },
 };
+
+export const crmApi = {
+  getStats: async () => {
+    const res = await apiClient<import('../types/crm').CrmStats>('/crm/stats');
+    return res.data;
+  },
+
+  getLeads: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    service?: string;
+    budgetRange?: string;
+    priority?: string;
+    search?: string;
+    assignedTo?: string;
+  }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.status && params.status !== 'ALL') searchParams.set('status', params.status);
+    if (params?.service && params.service !== 'ALL') searchParams.set('service', params.service);
+    if (params?.budgetRange && params.budgetRange !== 'ALL') searchParams.set('budgetRange', params.budgetRange);
+    if (params?.priority && params.priority !== 'ALL') searchParams.set('priority', params.priority);
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.assignedTo && params.assignedTo !== 'ALL') searchParams.set('assignedTo', params.assignedTo);
+
+    const qs = searchParams.toString();
+    const res = await apiClient<import('../types/crm').CrmLead[]>(`/crm/leads${qs ? `?${qs}` : ''}`);
+    return res;
+  },
+
+  getLeadById: async (id: string) => {
+    const res = await apiClient<
+      import('../types/crm').CrmLead & {
+        activities: import('../types/crm').CrmActivity[];
+        proposals: import('../types/crm').CrmProposal[];
+      }
+    >(`/crm/leads/${id}`);
+    return res.data;
+  },
+
+  createLead: async (payload: Partial<import('../types/crm').CrmLead>) => {
+    const res = await apiClient<import('../types/crm').CrmLead>('/crm/leads', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  updateLead: async (id: string, payload: Partial<import('../types/crm').CrmLead>) => {
+    const res = await apiClient<import('../types/crm').CrmLead>(`/crm/leads/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  updateLeadStage: async (id: string, stage: string, note?: string) => {
+    const res = await apiClient<import('../types/crm').CrmLead>(`/crm/leads/${id}/stage`, {
+      method: 'PATCH',
+      body: JSON.stringify({ stage, note }),
+    });
+    return res.data;
+  },
+
+  convertLeadToClient: async (id: string, payload: { companyName?: string; industry?: string; tier?: string; initialContractValue?: number; billingEmail?: string }) => {
+    const res = await apiClient<{ client: import('../types/crm').CrmClient; lead: import('../types/crm').CrmLead }>(`/crm/leads/${id}/convert`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  logActivity: async (id: string, payload: { type: string; title: string; content?: string }) => {
+    const res = await apiClient<import('../types/crm').CrmActivity>(`/crm/leads/${id}/activities`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+
+  getClients: async (params?: { page?: number; limit?: number; search?: string; tier?: string }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.tier && params.tier !== 'ALL') searchParams.set('tier', params.tier);
+
+    const qs = searchParams.toString();
+    const res = await apiClient<import('../types/crm').CrmClient[]>(`/crm/clients${qs ? `?${qs}` : ''}`);
+    return res;
+  },
+
+  createProposal: async (payload: any) => {
+    const res = await apiClient<import('../types/crm').CrmProposal>('/crm/proposals', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  },
+};
+
