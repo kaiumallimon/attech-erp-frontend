@@ -1222,74 +1222,78 @@ await fetch('http://localhost:4000/api/v1/public/crm/leads', {
       {/* ========================================================================= */}
       {isDetailDrawerOpen && selectedLead && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs">
-          <div className="w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
+          <div className="w-full sm:max-w-xl md:max-w-2xl bg-white h-full shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
             {/* Drawer Header */}
-            <div className="p-6 border-b border-[#E5E7EB] bg-[#FAFAF9] flex items-center justify-between shrink-0">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-extrabold text-[#0B251A]">{selectedLead.name}</h2>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${STAGE_CONFIG[selectedLead.status].bg} ${STAGE_CONFIG[selectedLead.status].text} ${STAGE_CONFIG[selectedLead.status].border}`}>
+            <div className="p-4 sm:p-6 border-b border-[#E5E7EB] bg-[#FAFAF9] flex items-center justify-between gap-3 shrink-0">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-lg sm:text-xl font-extrabold text-[#0B251A] truncate">{selectedLead.name}</h2>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${STAGE_CONFIG[selectedLead.status].bg} ${STAGE_CONFIG[selectedLead.status].text} ${STAGE_CONFIG[selectedLead.status].border}`}>
                     {STAGE_CONFIG[selectedLead.status].label}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">{selectedLead.company || 'Private Client'} • {selectedLead.email}</p>
+                <p className="text-xs text-slate-400 mt-0.5 truncate">{selectedLead.company || 'Private Client'} • {selectedLead.email}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsDetailDrawerOpen(false)}
-                className="p-2 rounded-full hover:bg-slate-200 text-slate-500 cursor-pointer"
+                className="p-2 rounded-full hover:bg-slate-200 text-slate-500 cursor-pointer shrink-0"
               >
                 <X className="size-5" />
               </button>
             </div>
 
             {/* Drawer Scroll Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
               {/* Top Quick Actions Bar */}
-              <div className="flex flex-wrap items-center gap-2 p-3 rounded-2xl bg-[#FAF7F2] border border-[#ECE5DA]">
-                <span className="text-[11px] font-bold text-[#877E71] uppercase tracking-wider pl-1">Move Stage:</span>
-                {KANBAN_STAGES.map((st) => (
-                  <button
-                    key={st}
-                    type="button"
-                    onClick={() => handleStageChange(selectedLead._id, st)}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer ${
-                      selectedLead.status === st
-                        ? 'bg-[#0B2E23] text-white shadow-xs'
-                        : 'bg-white hover:bg-slate-100 text-slate-700 border border-[#E5E7EB]'
-                    }`}
-                  >
-                    {STAGE_CONFIG[st].label}
-                  </button>
-                ))}
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#FAF7F2] border border-[#ECE5DA] space-y-2">
+                <span className="text-[10px] sm:text-[11px] font-bold text-[#877E71] uppercase tracking-wider block pl-1">
+                  Move Pipeline Stage:
+                </span>
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                  {KANBAN_STAGES.map((st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => handleStageChange(selectedLead._id, st)}
+                      className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+                        selectedLead.status === st
+                          ? 'bg-[#0B2E23] text-white shadow-xs'
+                          : 'bg-white hover:bg-slate-100 text-slate-700 border border-[#E5E7EB]'
+                      }`}
+                    >
+                      {STAGE_CONFIG[st].label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Lead Summary Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-3 bg-[#FAFAF9] rounded-2xl border border-[#E5E7EB] space-y-0.5">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase">Budget</span>
-                  <p className="text-xs font-extrabold text-slate-800">{selectedLead.budgetRange}</p>
+              {/* Lead Summary Grid (2x2 Layout) */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3.5 sm:p-4 bg-[#FAFAF9] rounded-2xl border border-[#E5E7EB] space-y-1 min-w-0">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Budget Bracket</span>
+                  <p className="text-xs sm:text-sm font-extrabold text-slate-800 truncate">{selectedLead.budgetRange}</p>
                 </div>
-                <div className="p-3 bg-[#FAFAF9] rounded-2xl border border-[#E5E7EB] space-y-0.5">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase">Est. Value</span>
-                  <p className="text-xs font-extrabold text-[#0B2E23]">${(selectedLead.estimatedValue || 0).toLocaleString()}</p>
+                <div className="p-3.5 sm:p-4 bg-[#FAFAF9] rounded-2xl border border-[#E5E7EB] space-y-1 min-w-0">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Estimated Value</span>
+                  <p className="text-xs sm:text-sm font-extrabold text-[#0B2E23] truncate">${(selectedLead.estimatedValue || 0).toLocaleString()}</p>
                 </div>
-                <div className="p-3 bg-[#FAFAF9] rounded-2xl border border-[#E5E7EB] space-y-0.5">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase">Lead Score</span>
-                  <p className="text-xs font-extrabold text-purple-700">{selectedLead.score}/100 pts</p>
+                <div className="p-3.5 sm:p-4 bg-[#FAFAF9] rounded-2xl border border-[#E5E7EB] space-y-1 min-w-0">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Algorithmic Score</span>
+                  <p className="text-xs sm:text-sm font-extrabold text-purple-700 truncate">{selectedLead.score}/100 pts</p>
                 </div>
-                <div className="p-3 bg-[#FAFAF9] rounded-2xl border border-[#E5E7EB] space-y-0.5">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase">Source</span>
-                  <p className="text-xs font-extrabold text-slate-800">{selectedLead.source}</p>
+                <div className="p-3.5 sm:p-4 bg-[#FAFAF9] rounded-2xl border border-[#E5E7EB] space-y-1 min-w-0">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Acquisition Source</span>
+                  <p className="text-xs sm:text-sm font-extrabold text-slate-800 truncate">{selectedLead.source}</p>
                 </div>
               </div>
 
               {/* Scoping Call Card if present */}
               {selectedLead.scopingCall?.scheduledAt && (
-                <div className="p-4 rounded-2xl bg-purple-50 border border-purple-200 flex items-start justify-between">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-purple-50 border border-purple-200 flex items-start justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5 text-purple-900 font-extrabold text-xs">
-                      <Calendar className="size-4 text-purple-700" />
+                      <Calendar className="size-4 text-purple-700 shrink-0" />
                       <span>Cal.com Scoping Call Confirmed</span>
                     </div>
                     <p className="text-xs text-purple-800 font-bold">
@@ -1308,7 +1312,7 @@ await fetch('http://localhost:4000/api/v1/public/crm/leads', {
               </div>
 
               {/* Conversion / Proposal Action Buttons */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => setIsProposalModalOpen(true)}
@@ -1354,7 +1358,7 @@ await fetch('http://localhost:4000/api/v1/public/crm/leads', {
                 </div>
 
                 {/* Add Note / Activity Form */}
-                <form onSubmit={handleAddActivity} className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#ECE5DA] space-y-3 shadow-2xs">
+                <form onSubmit={handleAddActivity} className="p-3.5 sm:p-4 rounded-2xl bg-[#FAF7F2] border border-[#ECE5DA] space-y-3 shadow-2xs">
                   {/* Activity Type Selector Pills */}
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-[10px] font-bold text-[#877E71] uppercase tracking-wider mr-1">Log Type:</span>
@@ -1392,12 +1396,12 @@ await fetch('http://localhost:4000/api/v1/public/crm/leads', {
                     className="w-full p-3 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#0B2E23]"
                   />
 
-                  <div className="flex items-center justify-between pt-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
                     <span className="text-[10px] text-slate-400">Timestamps and actor info are recorded automatically.</span>
                     <button
                       type="submit"
                       disabled={isSubmitting || !activityNote.trim()}
-                      className="px-4 py-1.5 rounded-full bg-[#0B2E23] hover:bg-[#08221a] text-white text-xs font-bold flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-2xs transition-colors"
+                      className="px-4 py-1.5 rounded-full bg-[#0B2E23] hover:bg-[#08221a] text-white text-xs font-bold flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-2xs transition-colors"
                     >
                       <Send className="size-3 text-[#AEFF48]" />
                       <span>{isSubmitting ? 'Posting...' : 'Post Entry'}</span>
@@ -1405,29 +1409,32 @@ await fetch('http://localhost:4000/api/v1/public/crm/leads', {
                   </div>
                 </form>
 
-                {/* Vertical Continuous Timeline Structure */}
-                <div className="relative pl-6 space-y-6 pt-2">
-                  {/* The Continuous Vertical Line connecting all nodes on left */}
-                  <div className="absolute left-[13px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-[#0B2E23] via-slate-200 to-slate-200" />
-
+                {/* Vertical Continuous Timeline Structure (Flex Row Track) */}
+                <div className="space-y-3 pt-2 pb-2">
                   {/* Activity Timeline Entries */}
                   {(selectedLead.activities || []).map((act) => {
                     const config = getActivityConfig(act.type);
                     const Icon = config.icon;
 
                     return (
-                      <div key={act._id} className="relative group">
-                        {/* Node Dot aligned on the vertical line */}
-                        <div
-                          className={`absolute -left-[23px] top-1.5 size-6 rounded-full ${config.dotBg} text-white flex items-center justify-center ring-4 ${config.ringColor} shadow-xs z-10 transition-transform group-hover:scale-110`}
-                        >
-                          <Icon className="size-3" />
+                      <div key={act._id} className="flex items-stretch gap-3.5 group">
+                        {/* Left Column: Fixed-width track with centered Node Dot & Line */}
+                        <div className="flex flex-col items-center shrink-0 w-8">
+                          {/* Node Dot */}
+                          <div
+                            className={`size-8 rounded-full ${config.dotBg} text-white flex items-center justify-center ring-4 ${config.ringColor} shadow-xs shrink-0 z-10 transition-transform group-hover:scale-105`}
+                          >
+                            <Icon className="size-4" />
+                          </div>
+
+                          {/* Vertical connecting line connecting this dot to the next item */}
+                          <div className="w-0.5 flex-1 bg-slate-200 my-1" />
                         </div>
 
-                        {/* Content Box */}
-                        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-2xs hover:shadow-xs transition-all space-y-2">
+                        {/* Right Column: Content Card */}
+                        <div className="flex-1 min-w-0 bg-white border border-[#E5E7EB] rounded-2xl p-3.5 sm:p-4 shadow-2xs hover:shadow-xs transition-all space-y-2 mb-1">
                           <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-xs font-bold text-[#0B251A]">{act.title}</span>
                               <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border ${config.badgeBg}`}>
                                 {config.label}
@@ -1461,12 +1468,17 @@ await fetch('http://localhost:4000/api/v1/public/crm/leads', {
                   })}
 
                   {/* Initial Lead Creation Genesis Milestone Marker */}
-                  <div className="relative group">
-                    <div className="absolute -left-[23px] top-1.5 size-6 rounded-full bg-slate-500 text-white flex items-center justify-center ring-4 ring-slate-100 shadow-xs z-10">
-                      <Sparkles className="size-3 text-amber-300" />
+                  <div className="flex items-stretch gap-3.5 group">
+                    {/* Left Column: Genesis Dot */}
+                    <div className="flex flex-col items-center shrink-0 w-8">
+                      <div className="size-8 rounded-full bg-slate-500 text-white flex items-center justify-center ring-4 ring-slate-100 shadow-xs shrink-0 z-10">
+                        <Sparkles className="size-4 text-amber-300" />
+                      </div>
                     </div>
-                    <div className="bg-[#FAFAF9] border border-dashed border-[#E5E7EB] rounded-2xl p-4 space-y-1.5">
-                      <div className="flex items-center justify-between">
+
+                    {/* Right Column: Genesis Content Card */}
+                    <div className="flex-1 min-w-0 bg-[#FAFAF9] border border-dashed border-[#E5E7EB] rounded-2xl p-3.5 sm:p-4 space-y-1.5">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-bold text-slate-800">Inbound Lead Originated</span>
                           <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
