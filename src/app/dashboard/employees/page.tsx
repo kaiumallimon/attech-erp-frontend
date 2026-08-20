@@ -306,10 +306,11 @@ export default function EmployeesWorkforcePage() {
   const safeLocations = Array.isArray(locations) ? locations : [];
   const safeEmployees = Array.isArray(employees) ? employees : [];
 
-  // Find users not yet linked to an employee (for new employee modal)
+  // Find users not yet linked to an active employee (for new employee modal)
   const existingEmployeeUserIds = useMemo(() => {
     const set = new Set<string>();
     safeEmployees.forEach((e) => {
+      if (e.isDeleted) return;
       const uId = typeof e.userId === 'string' ? e.userId : (e.userId as any)?.id || (e.userId as any)?._id;
       if (uId) set.add(uId.toString());
     });
