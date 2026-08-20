@@ -238,8 +238,8 @@ export default function EmployeesWorkforcePage() {
       const uData = Array.isArray((usersRes as any)?.data)
         ? (usersRes as any).data
         : Array.isArray(usersRes)
-        ? usersRes
-        : [];
+          ? usersRes
+          : [];
       setUsersList(uData);
     } catch (err) {
       console.error('Failed to load lookups:', err);
@@ -384,9 +384,9 @@ export default function EmployeesWorkforcePage() {
   const modalTeamOptions: SelectOption[] = useMemo(() => {
     const list = employeeForm.departmentId
       ? safeTeams.filter((t) => {
-          const dId = typeof t.departmentId === 'string' ? t.departmentId : (t.departmentId as any)?._id || (t.departmentId as any)?.id;
-          return dId === employeeForm.departmentId;
-        })
+        const dId = typeof t.departmentId === 'string' ? t.departmentId : (t.departmentId as any)?._id || (t.departmentId as any)?.id;
+        return dId === employeeForm.departmentId;
+      })
       : safeTeams;
 
     return [
@@ -835,11 +835,10 @@ export default function EmployeesWorkforcePage() {
       {/* Toast Notification */}
       {notification && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border text-sm font-semibold animate-slideUp ${
-            notification.type === 'success'
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border text-sm font-semibold animate-slideUp ${notification.type === 'success'
               ? 'bg-[#0B2E23] text-white border-[#0B251A]'
               : 'bg-rose-600 text-white border-rose-700'
-          }`}
+            }`}
         >
           {notification.type === 'success' ? (
             <CheckCircle2 className="size-5 text-[#AEFF48] shrink-0" />
@@ -849,73 +848,6 @@ export default function EmployeesWorkforcePage() {
           <span>{notification.message}</span>
         </div>
       )}
-
-      {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="size-9 rounded-2xl bg-[#0B2E23] text-[#AEFF48] flex items-center justify-center shadow-xs">
-              <Briefcase className="size-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-extrabold text-[#111111] tracking-tight">
-                Employees & Workforce
-              </h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Unified workforce directory, 1:1 user linkage, organizational hierarchy, skill matrices & secure documents
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <button
-            type="button"
-            onClick={() => void loadEmployees()}
-            disabled={isLoading}
-            className="h-10 px-3.5 rounded-full border border-[#E5E7EB] bg-white hover:bg-[#FAF7F2] text-xs font-semibold text-slate-700 cursor-pointer flex items-center gap-2 transition-all shadow-xs"
-            title="Refresh workforce telemetry"
-          >
-            <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin text-emerald-600' : ''}`} />
-            <span>Refresh</span>
-          </button>
-
-          {/* Table / Grid Switcher */}
-          <div className="flex items-center p-1 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full">
-            <button
-              type="button"
-              onClick={() => setViewMode('table')}
-              className={`p-2 rounded-full cursor-pointer transition-all ${
-                viewMode === 'table' ? 'bg-[#0B2E23] text-[#AEFF48] shadow-xs' : 'text-slate-500 hover:text-slate-800'
-              }`}
-              title="Table view"
-            >
-              <ListFilter className="size-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-full cursor-pointer transition-all ${
-                viewMode === 'grid' ? 'bg-[#0B2E23] text-[#AEFF48] shadow-xs' : 'text-slate-500 hover:text-slate-800'
-              }`}
-              title="Grid card view"
-            >
-              <LayoutGrid className="size-3.5" />
-            </button>
-          </div>
-
-          {(isAdmin || isSuperAdmin) && (
-            <button
-              type="button"
-              onClick={handleOpenAddModal}
-              className="h-10 px-5 bg-[#0B2E23] hover:bg-[#0B251A] text-white text-xs font-bold rounded-full shadow-sm cursor-pointer flex items-center gap-2 transition-all"
-            >
-              <Plus className="size-4 text-[#AEFF48]" />
-              <span>Add Employee</span>
-            </button>
-          )}
-        </div>
-      </div>
 
       {/* Workforce Telemetry Summary Card (5 segments) */}
       <Card className="bg-[#FAF7F2] border border-[#ECE5DA] rounded-4xl shadow-2xs overflow-hidden">
@@ -1028,7 +960,7 @@ export default function EmployeesWorkforcePage() {
               setCurrentPage(1);
             }}
             placeholder="Department"
-            className="h-11 text-xs"
+            className="w-full h-11 text-xs"
           />
         </div>
 
@@ -1042,7 +974,7 @@ export default function EmployeesWorkforcePage() {
               setCurrentPage(1);
             }}
             placeholder="Team"
-            className="h-11 text-xs"
+            className="w-full h-11 text-xs"
           />
         </div>
 
@@ -1056,7 +988,7 @@ export default function EmployeesWorkforcePage() {
               setCurrentPage(1);
             }}
             placeholder="Position"
-            className="h-11 text-xs"
+            className="w-full h-11 text-xs"
           />
         </div>
 
@@ -1070,7 +1002,7 @@ export default function EmployeesWorkforcePage() {
               setCurrentPage(1);
             }}
             placeholder="Level"
-            className="h-11 text-xs"
+            className="w-full h-11 text-xs"
           />
         </div>
 
@@ -1084,7 +1016,7 @@ export default function EmployeesWorkforcePage() {
               setCurrentPage(1);
             }}
             placeholder="Type"
-            className="h-11 text-xs"
+            className="w-full h-11 text-xs"
           />
         </div>
 
@@ -1098,7 +1030,7 @@ export default function EmployeesWorkforcePage() {
               setCurrentPage(1);
             }}
             placeholder="Status"
-            className="h-11 text-xs"
+            className="w-full h-11 text-xs"
           />
         </div>
       </div>
@@ -1468,11 +1400,10 @@ export default function EmployeesWorkforcePage() {
                     key={tab.key}
                     type="button"
                     onClick={() => setActiveProfileTab(tab.key)}
-                    className={`h-9 px-4 rounded-full text-xs font-bold cursor-pointer transition-all flex items-center gap-2 shrink-0 ${
-                      isActive
+                    className={`h-9 px-4 rounded-full text-xs font-bold cursor-pointer transition-all flex items-center gap-2 shrink-0 ${isActive
                         ? 'bg-[#0B2E23] text-[#AEFF48] shadow-xs'
                         : 'bg-white text-slate-600 hover:text-slate-900 border border-[#ECE5DA]'
-                    }`}
+                      }`}
                   >
                     <Icon className="size-3.5" />
                     <span>{tab.label}</span>
@@ -1833,10 +1764,10 @@ export default function EmployeesWorkforcePage() {
                     wizardStep === 1
                       ? 'User Account Linkage'
                       : wizardStep === 2
-                      ? 'Organizational Placement'
-                      : wizardStep === 3
-                      ? 'Employment Terms'
-                      : 'Professional Skills & Bio'
+                        ? 'Organizational Placement'
+                        : wizardStep === 3
+                          ? 'Employment Terms'
+                          : 'Professional Skills & Bio'
                   }
                 </p>
               </div>
@@ -1856,11 +1787,10 @@ export default function EmployeesWorkforcePage() {
                   key={step}
                   type="button"
                   onClick={() => setWizardStep(step as any)}
-                  className={`py-3 border-b-2 transition-colors cursor-pointer ${
-                    wizardStep === step
+                  className={`py-3 border-b-2 transition-colors cursor-pointer ${wizardStep === step
                       ? 'border-[#0B2E23] text-[#0B2E23]'
                       : 'border-transparent text-slate-400 hover:text-slate-600'
-                  }`}
+                    }`}
                 >
                   Step {step}
                 </button>
@@ -1888,7 +1818,7 @@ export default function EmployeesWorkforcePage() {
                       onChange={(val) => setEmployeeForm((prev) => ({ ...prev, userId: val }))}
                       disabled={!!editingEmployee}
                       placeholder="Select user account"
-                      className="h-11 text-xs"
+                      className="w-full h-11 text-xs"
                     />
                   </div>
                 </div>
@@ -1905,7 +1835,7 @@ export default function EmployeesWorkforcePage() {
                         options={deptSelectOptions}
                         onChange={(val) => setEmployeeForm((prev) => ({ ...prev, departmentId: val, teamId: '' }))}
                         placeholder="Select Department"
-                        className="h-11 text-xs"
+                        className="w-full h-11 text-xs"
                       />
                     </div>
 
@@ -1916,7 +1846,7 @@ export default function EmployeesWorkforcePage() {
                         options={modalTeamOptions}
                         onChange={(val) => setEmployeeForm((prev) => ({ ...prev, teamId: val }))}
                         placeholder="Select Team"
-                        className="h-11 text-xs"
+                        className="w-full h-11 text-xs"
                       />
                     </div>
 
@@ -1927,7 +1857,7 @@ export default function EmployeesWorkforcePage() {
                         options={modalPosOptions}
                         onChange={(val) => setEmployeeForm((prev) => ({ ...prev, positionId: val }))}
                         placeholder="Select Position"
-                        className="h-11 text-xs"
+                        className="w-full h-11 text-xs"
                       />
                     </div>
 
@@ -1938,7 +1868,7 @@ export default function EmployeesWorkforcePage() {
                         options={modalLevelOptions}
                         onChange={(val) => setEmployeeForm((prev) => ({ ...prev, levelId: val }))}
                         placeholder="Select Level"
-                        className="h-11 text-xs"
+                        className="w-full h-11 text-xs"
                       />
                     </div>
 
@@ -1949,7 +1879,7 @@ export default function EmployeesWorkforcePage() {
                         options={modalLocationOptions}
                         onChange={(val) => setEmployeeForm((prev) => ({ ...prev, locationId: val }))}
                         placeholder="Select Location"
-                        className="h-11 text-xs"
+                        className="w-full h-11 text-xs"
                       />
                     </div>
 
@@ -1960,7 +1890,7 @@ export default function EmployeesWorkforcePage() {
                         options={modalManagerOptions}
                         onChange={(val) => setEmployeeForm((prev) => ({ ...prev, managerId: val }))}
                         placeholder="Select Manager"
-                        className="h-11 text-xs"
+                        className="w-full h-11 text-xs"
                       />
                     </div>
                   </div>
@@ -1977,7 +1907,7 @@ export default function EmployeesWorkforcePage() {
                         value={employeeForm.employmentType || EmploymentType.FULL_TIME}
                         options={EMPLOYMENT_TYPE_OPTIONS.filter((o) => o.value !== 'all')}
                         onChange={(val) => setEmployeeForm((prev) => ({ ...prev, employmentType: val as any }))}
-                        className="h-11 text-xs"
+                        className="w-full h-11 text-xs"
                       />
                     </div>
 
@@ -1987,7 +1917,7 @@ export default function EmployeesWorkforcePage() {
                         value={employeeForm.employmentStatus || EmploymentStatus.ACTIVE}
                         options={EMPLOYMENT_STATUS_OPTIONS.filter((o) => o.value !== 'all')}
                         onChange={(val) => setEmployeeForm((prev) => ({ ...prev, employmentStatus: val as any }))}
-                        className="h-11 text-xs"
+                        className="w-full h-11 text-xs"
                       />
                     </div>
 
@@ -2223,7 +2153,7 @@ export default function EmployeesWorkforcePage() {
                   value={statusForm.status}
                   options={EMPLOYMENT_STATUS_OPTIONS.filter((o) => o.value !== 'all')}
                   onChange={(val) => setStatusForm((prev) => ({ ...prev, status: val as any }))}
-                  className="h-11 text-xs"
+                  className="w-full h-11 text-xs"
                 />
               </div>
 
@@ -2307,7 +2237,7 @@ export default function EmployeesWorkforcePage() {
                   value={docForm.documentType}
                   options={DOCUMENT_TYPE_OPTIONS}
                   onChange={(val) => setDocForm((prev) => ({ ...prev, documentType: val }))}
-                  className="h-11 text-xs"
+                  className="w-full h-11 text-xs"
                 />
               </div>
 

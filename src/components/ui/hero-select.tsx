@@ -177,14 +177,16 @@ export function HeroSelect({
       : 'h-11 px-3.5 text-xs rounded-full';
 
   return (
-    <div ref={containerRef} className={`relative inline-block w-full ${className}`}>
+    <div ref={containerRef} className={`relative inline-block ${className}`}>
       {/* Trigger Button */}
       <button
         ref={triggerRef}
         type="button"
         disabled={disabled}
         onClick={handleToggle}
-        className={`w-full flex items-center justify-between gap-2.5 bg-[#F9FAFB] hover:bg-white border border-[#E5E7EB] font-semibold text-slate-700 transition-all cursor-pointer shadow-2xs select-none ${sizeClasses} ${
+        className={`flex items-center justify-between gap-2.5 bg-[#F9FAFB] hover:bg-white border border-[#E5E7EB] font-semibold text-slate-700 transition-all cursor-pointer shadow-2xs select-none ${sizeClasses} ${
+          className.includes('w-full') ? 'w-full' : ''
+        } ${
           isOpen ? 'bg-white border-[#0B2E23] ring-2 ring-[#0B2E23]/10 shadow-xs' : ''
         } ${disabled ? 'opacity-50 pointer-events-none' : ''} ${triggerClassName}`}
       >

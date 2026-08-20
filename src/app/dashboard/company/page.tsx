@@ -743,35 +743,6 @@ export default function CompanyOrganizationPage() {
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* 1. HEADER SECTION & TELEMETRY SUMMARY                                      */}
-      {/* ========================================================================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-[#111111] tracking-tight flex items-center gap-2.5">
-            <span>Company & Organization</span>
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider">
-              {company?.status || 'Active'}
-            </span>
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-normal">
-            Database-driven agency identity, dynamic departments, teams, positions, seniority levels, locations, and organizational chart.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={() => void loadData()}
-            className="h-10 px-3.5 rounded-full bg-white hover:bg-slate-50 border border-[#E5E7EB] text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs cursor-pointer transition-all"
-            title="Refresh All Organizational Data"
-          >
-            <RefreshCw className={`size-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
-        </div>
-      </div>
-
       {/* Unified Telemetry Card in Warm Agency Tones */}
       <Card className="bg-[#FAF7F2] border border-[#ECE5DA] rounded-4xl shadow-2xs overflow-hidden w-full">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#ECE5DA]">
