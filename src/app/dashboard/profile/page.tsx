@@ -35,21 +35,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../../context/auth-context';
 import { usersApi, authApi } from '../../../lib/api';
-import { HeroSelect, SelectOption } from '../../../components/ui/hero-select';
 import { Role } from '../../../types/auth';
-
-const DEPARTMENTS: SelectOption[] = [
-  { value: 'Engineering', label: 'Engineering' },
-  { value: 'Design & Creative', label: 'Design & Creative' },
-  { value: 'Product & Strategy', label: 'Product & Strategy' },
-  { value: 'Quality Assurance', label: 'Quality Assurance' },
-  { value: 'DevOps & Cloud', label: 'DevOps & Cloud' },
-  { value: 'Human Resources', label: 'Human Resources' },
-  { value: 'Finance & Accounting', label: 'Finance & Accounting' },
-  { value: 'Sales & Marketing', label: 'Sales & Marketing' },
-  { value: 'Client Relations', label: 'Client Relations' },
-  { value: 'Operations', label: 'Operations' },
-];
 
 export default function ProfileWorkstationPage() {
   const { user, rbac, isSuperAdmin, isAdmin, logout, refreshProfile } = useAuth();
@@ -72,8 +58,6 @@ export default function ProfileWorkstationPage() {
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
-    department: 'Engineering',
-    jobTitle: '',
     phone: '',
   });
 
@@ -95,8 +79,6 @@ export default function ProfileWorkstationPage() {
       setForm({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
-        department: user.department || 'Engineering',
-        jobTitle: user.jobTitle || '',
         phone: user.phone || '',
       });
     }
@@ -357,8 +339,8 @@ export default function ProfileWorkstationPage() {
                   </span>
                   <span>•</span>
                   <span className="flex items-center gap-1.5 font-semibold text-slate-700">
-                    <Briefcase className="size-3.5 text-[#0B2E23]" />
-                    {user.jobTitle || 'System User'}
+                    <Shield className="size-3.5 text-[#0B2E23]" />
+                    {user.role.replace(/_/g, ' ')}
                   </span>
                 </div>
               </div>
@@ -374,7 +356,7 @@ export default function ProfileWorkstationPage() {
                 {user.status}
               </span>
               <span className="text-[11px] font-semibold rounded-full px-3.5 py-1 bg-slate-100 text-slate-600 border border-slate-200 shadow-2xs">
-                {user.department || 'Engineering'}
+                {user.authProvider} Account
               </span>
             </div>
           </div>
@@ -592,30 +574,6 @@ export default function ProfileWorkstationPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Department</label>
-                  <HeroSelect
-                    value={form.department}
-                    onChange={(val) => setForm({ ...form, department: val })}
-                    options={DEPARTMENTS}
-                    className="w-full"
-                    triggerClassName="w-full h-11 rounded-2xl"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Designation / Role Title</label>
-                  <input
-                    type="text"
-                    value={form.jobTitle}
-                    onChange={(e) => setForm({ ...form, jobTitle: e.target.value })}
-                    placeholder="e.g. Lead Software Architect"
-                    className="w-full h-11 px-3.5 bg-[#F9FAFB] hover:bg-white focus:bg-white border border-[#E5E7EB] focus:border-[#0B2E23] rounded-2xl text-xs text-[#111111] font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-[#0B2E23]/10"
-                  />
-                </div>
-              </div>
-
               <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-end">
                 <button
                   type="submit"
@@ -656,8 +614,8 @@ export default function ProfileWorkstationPage() {
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-[#E5E7EB] space-y-1">
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400">Assigned Department</span>
-                  <p className="font-bold text-slate-800">{user.department || 'Engineering'}</p>
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400">Authentication Provider</span>
+                  <p className="font-bold text-slate-800">{user.authProvider} Account</p>
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-[#E5E7EB] space-y-1">

@@ -927,6 +927,63 @@ export default function EmployeesWorkforcePage() {
         </div>
       </Card>
 
+      {/* Top Action Bar: View Switcher, Refresh, & Add Employee */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          {/* View Mode Switcher (Table vs Grid) */}
+          <div className="flex items-center p-1 bg-[#FAF7F2] border border-[#E5E7EB] rounded-2xl shadow-2xs">
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                viewMode === 'table'
+                  ? 'bg-white text-[#0B2E23] shadow-xs'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <ListFilter className="size-3.5" />
+              <span>Table</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                viewMode === 'grid'
+                  ? 'bg-white text-[#0B2E23] shadow-xs'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <LayoutGrid className="size-3.5" />
+              <span>Grid</span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              void loadEmployees();
+              void loadLookups();
+            }}
+            title="Refresh Workforce Directory"
+            className="size-9 rounded-2xl bg-white border border-[#E5E7EB] hover:bg-[#FAF7F2] text-slate-600 flex items-center justify-center cursor-pointer transition-colors shadow-2xs"
+          >
+            <RefreshCw className="size-3.5" />
+          </button>
+        </div>
+
+        {/* Add Employee Action Button */}
+        {(isAdmin || isSuperAdmin) && (
+          <button
+            type="button"
+            onClick={handleOpenAddModal}
+            className="h-10 px-5 bg-[#0B2E23] hover:bg-[#0B251A] text-[#AEFF48] text-xs font-bold rounded-full shadow-xs cursor-pointer flex items-center justify-center gap-2 transition-all select-none"
+          >
+            <Plus className="size-4" />
+            <span>Add Employee</span>
+          </button>
+        )}
+      </div>
+
       {/* Search & Multi-Filters Toolbar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         {/* Search */}
@@ -1067,6 +1124,16 @@ export default function EmployeesWorkforcePage() {
                       <Briefcase className="size-10 mx-auto text-slate-300 mb-2" />
                       <p className="font-bold text-slate-700 text-sm">No employees match criteria</p>
                       <p className="text-xs text-slate-400 mt-1">Try clearing your search query or filters.</p>
+                      {(isAdmin || isSuperAdmin) && (
+                        <button
+                          type="button"
+                          onClick={handleOpenAddModal}
+                          className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-[#0B2E23] hover:bg-[#0B251A] text-[#AEFF48] text-xs font-bold rounded-full cursor-pointer shadow-xs transition-all"
+                        >
+                          <Plus className="size-3.5" />
+                          <span>Register New Employee</span>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ) : (
@@ -1252,6 +1319,17 @@ export default function EmployeesWorkforcePage() {
             <div className="col-span-full py-16 text-center text-slate-400">
               <Briefcase className="size-10 mx-auto text-slate-300 mb-2" />
               <p className="font-bold text-slate-700 text-sm">No employees match criteria</p>
+              <p className="text-xs text-slate-400 mt-1">Try clearing your search query or filters.</p>
+              {(isAdmin || isSuperAdmin) && (
+                <button
+                  type="button"
+                  onClick={handleOpenAddModal}
+                  className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-[#0B2E23] hover:bg-[#0B251A] text-[#AEFF48] text-xs font-bold rounded-full cursor-pointer shadow-xs transition-all"
+                >
+                  <Plus className="size-3.5" />
+                  <span>Register New Employee</span>
+                </button>
+              )}
             </div>
           ) : (
             safeEmployees.map((emp) => {
