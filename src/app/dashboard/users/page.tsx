@@ -45,18 +45,6 @@ const ALL_ROLES = [
   Role.CLIENT,
 ];
 
-const DEPARTMENTS = [
-  'Executive Leadership',
-  'Engineering',
-  'Design & Creative',
-  'Product & Strategy',
-  'Quality Assurance',
-  'Human Resources',
-  'Finance & Accounting',
-  'Sales & Marketing',
-  'Operations',
-];
-
 const ROLE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   SUPER_ADMIN: { bg: 'bg-[#0B2E23]/10', text: 'text-[#0B251A]', border: 'border-[#0B2E23]/30' },
   CEO: { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-300' },
@@ -83,11 +71,6 @@ const ROLE_OPTIONS: SelectOption[] = [
   ...ALL_ROLES.map((r) => ({ value: r, label: formatRoleLabel(r) })),
 ];
 
-const DEPARTMENT_OPTIONS: SelectOption[] = [
-  { value: '', label: 'All Departments' },
-  ...DEPARTMENTS.map((d) => ({ value: d, label: d })),
-];
-
 const STATUS_OPTIONS: SelectOption[] = [
   { value: '', label: 'All Statuses' },
   { value: 'ACTIVE', label: 'Active Only' },
@@ -100,7 +83,6 @@ const SORT_OPTIONS: SelectOption[] = [
   { value: 'firstName', label: 'Sort: First Name' },
   { value: 'email', label: 'Sort: Email' },
   { value: 'role', label: 'Sort: Role' },
-  { value: 'department', label: 'Sort: Department' },
 ];
 
 const PAGE_SIZE_OPTIONS: SelectOption[] = [
@@ -113,11 +95,6 @@ const PAGE_SIZE_OPTIONS: SelectOption[] = [
 const FORM_ROLE_OPTIONS: SelectOption[] = ALL_ROLES.map((r) => ({
   value: r,
   label: formatRoleLabel(r),
-}));
-
-const FORM_DEPARTMENT_OPTIONS: SelectOption[] = DEPARTMENTS.map((d) => ({
-  value: d,
-  label: d,
 }));
 
 export default function UsersManagementPage() {
@@ -140,7 +117,6 @@ export default function UsersManagementPage() {
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const [roleFilter, setRoleFilter] = useState<string>('');
-  const [departmentFilter, setDepartmentFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -164,16 +140,12 @@ export default function UsersManagementPage() {
     firstName: '',
     lastName: '',
     email: '',
-    department: 'Engineering',
-    jobTitle: '',
     role: Role.DEVELOPER,
     phone: '',
   });
   const [editForm, setEditForm] = useState({
     firstName: '',
     lastName: '',
-    department: '',
-    jobTitle: '',
     phone: '',
   });
   const [roleForm, setRoleForm] = useState<{ role: Role }>({
@@ -211,7 +183,6 @@ export default function UsersManagementPage() {
       const res = await usersApi.getAll({
         search: debouncedSearch || undefined,
         role: roleFilter || undefined,
-        department: departmentFilter || undefined,
         status: statusFilter || undefined,
         sortBy,
         sortOrder,
@@ -229,7 +200,7 @@ export default function UsersManagementPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearch, roleFilter, departmentFilter, statusFilter, sortBy, sortOrder, currentPage, pageSize]);
+  }, [debouncedSearch, roleFilter, statusFilter, sortBy, sortOrder, currentPage, pageSize]);
 
   useEffect(() => {
     void fetchStats();
@@ -262,8 +233,6 @@ export default function UsersManagementPage() {
         firstName: '',
         lastName: '',
         email: '',
-        department: 'Engineering',
-        jobTitle: '',
         role: Role.DEVELOPER,
         phone: '',
       });
@@ -398,7 +367,6 @@ export default function UsersManagementPage() {
     setSearch('');
     setDebouncedSearch('');
     setRoleFilter('');
-    setDepartmentFilter('');
     setStatusFilter('');
     setSortBy('createdAt');
     setSortOrder('desc');
@@ -406,7 +374,7 @@ export default function UsersManagementPage() {
   };
 
   const hasActiveFilters = Boolean(
-    search || roleFilter || departmentFilter || statusFilter || sortBy !== 'createdAt' || sortOrder !== 'desc'
+    search || roleFilter || statusFilter || sortBy !== 'createdAt' || sortOrder !== 'desc'
   );
 
   return (
@@ -509,17 +477,17 @@ export default function UsersManagementPage() {
                 </div>
               </div>
 
-              {/* Stat 5: Departments */}
+              {/* Stat 5: Inactive Accounts */}
               <div className="p-5 flex flex-col justify-between col-span-2 sm:col-span-1 hover:bg-[#FFFDF9] transition-colors">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#999083]">Departments</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#999083]">Inactive</span>
                   <div className="p-2 rounded-2xl bg-[#F6EEE7] text-[#9C5535] shadow-2xs">
                     <Building2 className="size-4" />
                   </div>
                 </div>
                 <div className="mt-3">
-                  <p className="text-2xl font-extrabold text-[#26221F]">{stats?.departmentsCount ?? DEPARTMENTS.length}</p>
-                  <p className="text-[10px] text-[#9C5535] font-bold mt-0.5">Functional Units</p>
+                  <p className="text-2xl font-extrabold text-[#26221F]">{stats?.inactiveUsers ?? 0}</p>
+                  <p className="text-[10px] text-[#9C5535] font-bold mt-0.5">Deprovisioned</p>
                 </div>
               </div>
             </>
@@ -566,17 +534,6 @@ export default function UsersManagementPage() {
                 }}
                 options={ROLE_OPTIONS}
                 placeholder="All Roles (13)"
-              />
-
-              {/* Department HeroUI Select */}
-              <HeroSelect
-                value={departmentFilter}
-                onChange={(val) => {
-                  setDepartmentFilter(val);
-                  setCurrentPage(1);
-                }}
-                options={DEPARTMENT_OPTIONS}
-                placeholder="All Departments"
               />
 
               {/* Status HeroUI Select */}
@@ -685,7 +642,6 @@ export default function UsersManagementPage() {
                   />
                 </th>
                 <th className="py-4 px-4">User</th>
-                <th className="py-4 px-6">Department</th>
                 <th className="py-4 px-6">Role & RBAC Authority</th>
                 <th className="py-4 px-6">Account Status</th>
                 <th className="py-4 px-6">Joined Date</th>
@@ -706,7 +662,6 @@ export default function UsersManagementPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-6"><Skeleton className="h-5 w-24 rounded-full" /></td>
                     <td className="py-4 px-6"><Skeleton className="h-5 w-28 rounded-full" /></td>
                     <td className="py-4 px-6"><Skeleton className="h-5 w-16 rounded-full" /></td>
                     <td className="py-4 px-6"><Skeleton className="h-3 w-20 rounded-md" /></td>
@@ -715,7 +670,7 @@ export default function UsersManagementPage() {
                 ))
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-slate-400">
+                  <td colSpan={6} className="py-16 text-center text-slate-400">
                     <Users className="size-10 mx-auto text-slate-300 mb-2" />
                     <p className="text-sm font-bold text-slate-700">No users found</p>
                     <p className="text-xs text-slate-400 mt-1">Try adjusting your search terms or filter selections.</p>
@@ -791,19 +746,8 @@ export default function UsersManagementPage() {
                               {isSuper && <Sparkles className="size-3 text-[#0B2E23] shrink-0" />}
                             </div>
                             <p className="text-[11px] text-slate-400 truncate">{u.email}</p>
-                            {u.jobTitle && (
-                              <p className="text-[10px] text-slate-500 font-medium truncate mt-0.5">{u.jobTitle}</p>
-                            )}
                           </div>
                         </div>
-                      </td>
-
-                      {/* Department */}
-                      <td className="py-4 px-6">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#F9FAFB] text-slate-700 border border-[#E5E7EB]">
-                          <Building2 className="size-3 text-slate-400" />
-                          <span>{u.department || 'General'}</span>
-                        </span>
                       </td>
 
                       {/* Role & RBAC Authority */}
@@ -871,8 +815,6 @@ export default function UsersManagementPage() {
                                   setEditForm({
                                     firstName: u.firstName,
                                     lastName: u.lastName,
-                                    department: u.department || '',
-                                    jobTitle: u.jobTitle || '',
                                     phone: u.phone || '',
                                   });
                                   setIsEditModalOpen(true);
@@ -1110,17 +1052,6 @@ export default function UsersManagementPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Department</label>
-                  <HeroSelect
-                    value={createForm.department}
-                    onChange={(val) => setCreateForm({ ...createForm, department: val })}
-                    options={FORM_DEPARTMENT_OPTIONS}
-                    className="w-full"
-                    triggerClassName="w-full h-10 rounded-2xl"
-                  />
-                </div>
-
-                <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Assigned Role</label>
                   <HeroSelect
                     value={createForm.role}
@@ -1128,19 +1059,6 @@ export default function UsersManagementPage() {
                     options={FORM_ROLE_OPTIONS}
                     className="w-full"
                     triggerClassName="w-full h-10 rounded-2xl"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Job Title</label>
-                  <input
-                    type="text"
-                    value={createForm.jobTitle}
-                    onChange={(e) => setCreateForm({ ...createForm, jobTitle: e.target.value })}
-                    placeholder="e.g. Lead Systems Architect"
-                    className="w-full h-10 px-3.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl text-xs text-[#0B251A] focus:bg-white focus:outline-none font-medium"
                   />
                 </div>
 
@@ -1225,28 +1143,6 @@ export default function UsersManagementPage() {
                     className="w-full h-10 px-3.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl text-xs text-[#0B251A] focus:bg-white focus:outline-none font-medium"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Department</label>
-                <HeroSelect
-                  value={editForm.department}
-                  onChange={(val) => setEditForm({ ...editForm, department: val })}
-                  options={FORM_DEPARTMENT_OPTIONS}
-                  className="w-full"
-                  triggerClassName="w-full h-10 rounded-2xl"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Job Title</label>
-                <input
-                  type="text"
-                  value={editForm.jobTitle}
-                  onChange={(e) => setEditForm({ ...editForm, jobTitle: e.target.value })}
-                  placeholder="e.g. Senior Backend Engineer"
-                  className="w-full h-10 px-3.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl text-xs text-[#0B251A] focus:bg-white focus:outline-none font-medium"
-                />
               </div>
 
               <div>

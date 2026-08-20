@@ -20,8 +20,6 @@ export interface UserProfile {
   lastName: string;
   email: string;
   role: Role;
-  department?: string;
-  jobTitle?: string;
   phone?: string;
   avatar?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'INVITED';

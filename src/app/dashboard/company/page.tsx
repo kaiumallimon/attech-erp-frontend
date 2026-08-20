@@ -293,11 +293,19 @@ export default function CompanyOrganizationPage() {
     }
     setIsSubmitting(true);
     try {
+      const sanitizedPayload = {
+        name: deptForm.name.trim(),
+        code: deptForm.code.trim().toUpperCase(),
+        description: deptForm.description?.trim() || undefined,
+        headId: deptForm.headId ? deptForm.headId : undefined,
+        status: deptForm.status,
+      };
+
       if (editingDept) {
-        await orgApi.updateDepartment(editingDept.id || (editingDept as any)._id, deptForm);
+        await orgApi.updateDepartment(editingDept.id || (editingDept as any)._id, sanitizedPayload);
         showToast(`Department '${deptForm.name}' updated successfully.`);
       } else {
-        await orgApi.createDepartment(deptForm);
+        await orgApi.createDepartment(sanitizedPayload);
         showToast(`Department '${deptForm.name}' created successfully.`);
       }
       setIsDeptModalOpen(false);
@@ -356,11 +364,20 @@ export default function CompanyOrganizationPage() {
     }
     setIsSubmitting(true);
     try {
+      const sanitizedPayload = {
+        name: teamForm.name.trim(),
+        code: teamForm.code.trim().toUpperCase(),
+        description: teamForm.description?.trim() || undefined,
+        departmentId: teamForm.departmentId,
+        leadId: teamForm.leadId ? teamForm.leadId : undefined,
+        status: teamForm.status,
+      };
+
       if (editingTeam) {
-        await orgApi.updateTeam(editingTeam.id || (editingTeam as any)._id, teamForm);
+        await orgApi.updateTeam(editingTeam.id || (editingTeam as any)._id, sanitizedPayload);
         showToast(`Team '${teamForm.name}' updated successfully.`);
       } else {
-        await orgApi.createTeam(teamForm);
+        await orgApi.createTeam(sanitizedPayload);
         showToast(`Team '${teamForm.name}' created successfully.`);
       }
       setIsTeamModalOpen(false);
@@ -419,11 +436,20 @@ export default function CompanyOrganizationPage() {
     }
     setIsSubmitting(true);
     try {
+      const sanitizedPayload = {
+        name: posForm.name.trim(),
+        code: posForm.code.trim().toUpperCase(),
+        description: posForm.description?.trim() || undefined,
+        departmentId: posForm.departmentId ? posForm.departmentId : undefined,
+        levelId: posForm.levelId ? posForm.levelId : undefined,
+        status: posForm.status,
+      };
+
       if (editingPos) {
-        await orgApi.updatePosition(editingPos.id || (editingPos as any)._id, posForm);
+        await orgApi.updatePosition(editingPos.id || (editingPos as any)._id, sanitizedPayload);
         showToast(`Position '${posForm.name}' updated successfully.`);
       } else {
-        await orgApi.createPosition(posForm);
+        await orgApi.createPosition(sanitizedPayload);
         showToast(`Position '${posForm.name}' created successfully.`);
       }
       setIsPosModalOpen(false);
