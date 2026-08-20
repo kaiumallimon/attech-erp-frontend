@@ -344,7 +344,6 @@ export const usersApi = {
     firstName: string;
     lastName: string;
     email: string;
-    password?: string;
     department?: string;
     jobTitle?: string;
     role?: string;
