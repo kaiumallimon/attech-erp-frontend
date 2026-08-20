@@ -358,7 +358,7 @@ export default function ProfileWorkstationPage() {
                   <span>•</span>
                   <span className="flex items-center gap-1.5 font-semibold text-slate-700">
                     <Briefcase className="size-3.5 text-[#0B2E23]" />
-                    {user.jobTitle || 'Corporate Staff'}
+                    {user.jobTitle || 'System User'}
                   </span>
                 </div>
               </div>
@@ -447,7 +447,7 @@ export default function ProfileWorkstationPage() {
                     })
                   : 'Active'}
               </p>
-              <p className="text-[11px] text-[#A39989]">Verified Staff Record</p>
+              <p className="text-[11px] text-[#A39989]">Verified User Record</p>
             </div>
           </div>
         </div>
@@ -642,7 +642,7 @@ export default function ProfileWorkstationPage() {
 
               <div className="space-y-4 text-xs mt-5">
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-[#E5E7EB] space-y-1">
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400">Staff Account ID</span>
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400">User Account ID</span>
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-bold text-slate-800 truncate max-w-[200px]">{user.id}</span>
                     <button

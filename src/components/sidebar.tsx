@@ -39,7 +39,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   ];
 
   const governanceNav = [
-    { name: 'Staff & Roles', href: '/dashboard/users', icon: Users },
+    { name: 'Users', href: '/dashboard/users', icon: Users },
     { name: 'CDN & Storage', href: '/dashboard/cdn', icon: Cloud },
     { name: 'Security & Audit', href: '/dashboard/audit', icon: ShieldAlert },
     { name: 'API Keys & Access', href: '/dashboard/api-keys', icon: KeyRound },
@@ -91,7 +91,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
               <p className="text-[10px] text-slate-400 truncate">{user?.email}</p>
               <div className="mt-1">
                 <span className="inline-block rounded-full bg-white px-2 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-slate-700 border border-[#E5E7EB] shadow-2xs">
-                  {role || 'Staff'}
+                  {role || 'User'}
                 </span>
               </div>
             </div>

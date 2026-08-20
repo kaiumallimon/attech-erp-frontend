@@ -56,7 +56,7 @@ const ACTION_OPTIONS: SelectOption[] = [
 const RESOURCE_OPTIONS: SelectOption[] = [
   { value: 'all', label: 'All Resources' },
   { value: 'auth', label: 'Auth & Sessions (auth)' },
-  { value: 'users', label: 'Staff & Accounts (users)' },
+  { value: 'users', label: 'User Accounts (users)' },
   { value: 'cdn', label: 'Edge CDN Storage (cdn)' },
   { value: 'roles', label: 'RBAC Permissions (roles)' },
   { value: 'system', label: 'System Operations (system)' },

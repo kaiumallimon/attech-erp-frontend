@@ -74,7 +74,7 @@ export default function DashboardOverviewPage() {
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111111] tracking-tight">{greeting}</h1>
               <p className="mt-2 max-w-xl text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                Here&apos;s your agency operations center. Oversee staff governance, security audit trails, media delivery, broadcasts, and machine access in real-time.
+                Here&apos;s your agency operations center. Oversee user accounts, security audit trails, media delivery, broadcasts, and machine access in real-time.
               </p>
             </div>
 
@@ -86,7 +86,7 @@ export default function DashboardOverviewPage() {
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-4xl bg-[#0B2E23] hover:bg-[#0B251A] text-white shadow-sm transition-all"
                 >
                   <UserPlus className="size-3.5 text-[#AEFF48]" />
-                  <span>Add Staff</span>
+                  <span>Add User</span>
                 </Link>
               )}
               <Link
@@ -103,7 +103,7 @@ export default function DashboardOverviewPage() {
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 pt-6 border-t border-[#E5E7EB]/60">
             <QuickStat
               icon={Users}
-              label="Agency Staff"
+              label="System Users"
               value={isAdmin ? '13 Roles' : 'Active'}
               color="text-blue-600"
               bgColor="bg-blue-50"
@@ -160,7 +160,7 @@ export default function DashboardOverviewPage() {
               href="/dashboard/users"
               className="text-xs text-[#0B2E23] font-bold hover:underline flex items-center gap-1"
             >
-              <span>Manage Staff</span>
+              <span>Manage Users</span>
               <ArrowRight className="size-3" />
             </Link>
           </div>
@@ -176,8 +176,8 @@ export default function DashboardOverviewPage() {
                 </div>
                 <ArrowRight className="size-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
               </div>
-              <p className="text-xs font-bold text-[#111111]">Staff Governance & RBAC</p>
-              <p className="text-[11px] text-slate-500">13 role assignments, permission matrix, and agency personnel management.</p>
+              <p className="text-xs font-bold text-[#111111]">User Accounts & RBAC</p>
+              <p className="text-[11px] text-slate-500">13 role assignments, permission matrix, and user access management.</p>
             </Link>
 
             <Link
@@ -264,7 +264,7 @@ export default function DashboardOverviewPage() {
                   <ShieldCheck className="size-4" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-[#111111]">Technical & Creative Staff</p>
+                  <p className="text-xs font-bold text-[#111111]">Technical & Creative Roles</p>
                   <p className="text-[10px] text-slate-500">Lead, Dev, Designer, QA, Employee</p>
                 </div>
               </div>

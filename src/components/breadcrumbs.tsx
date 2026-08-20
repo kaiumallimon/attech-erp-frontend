@@ -7,12 +7,11 @@ import { ChevronRight, Home } from 'lucide-react';
 
 const ROUTE_LABELS: Record<string, string> = {
   dashboard: 'Overview',
-  users: 'Staff & Roles',
+  users: 'Users',
+  cdn: 'CDN & Storage',
   audit: 'Security & Audit',
-  projects: 'Projects & SDLC',
-  finance: 'Finance & Invoicing',
-  hr: 'People & HR',
-  portal: 'Client Portal',
+  'api-keys': 'API Keys',
+  newsletter: 'Newsletter & Broadcasts',
   profile: 'My Profile & RBAC',
 };
 

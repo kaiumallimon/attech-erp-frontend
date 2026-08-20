@@ -25,7 +25,7 @@ import GradualBlur from './ui/gradual-blur';
 
 const ROUTE_TITLES: Record<string, { title: string; subtitle?: string }> = {
   '/dashboard': { title: 'Overview Dashboard', subtitle: 'Real-time agency operations & metrics' },
-  '/dashboard/users': { title: 'Staff & Role Governance', subtitle: 'Centralized staff provisioning & RBAC assignments' },
+  '/dashboard/users': { title: 'User Management', subtitle: 'System login accounts, credentials & RBAC role provisioning' },
   '/dashboard/cdn': { title: 'CDN & Media Storage', subtitle: 'Cloudinary digital asset management & optimization' },
   '/dashboard/audit': { title: 'Security Audit Trail', subtitle: 'Immutable compliance logging & security telemetry' },
   '/dashboard/api-keys': { title: 'API Keys & Machine Access', subtitle: 'Cryptographic API keys, scopes & IP whitelisting' },
@@ -35,7 +35,7 @@ const ROUTE_TITLES: Record<string, { title: string; subtitle?: string }> = {
 
 const SEARCH_ITEMS = [
   { id: 'overview', name: 'Overview Dashboard', href: '/dashboard', category: 'Pages', icon: LayoutDashboard, keywords: 'home stats metrics summary' },
-  { id: 'users', name: 'Staff & Role Governance', href: '/dashboard/users', category: 'Pages', icon: Users, keywords: 'team members roles permissions users' },
+  { id: 'users', name: 'User Management', href: '/dashboard/users', category: 'Pages', icon: Users, keywords: 'users login accounts roles permissions credentials' },
   { id: 'cdn', name: 'CDN & Media Storage', href: '/dashboard/cdn', category: 'Pages', icon: ShieldAlert, keywords: 'assets images media cloudinary storage' },
   { id: 'audit', name: 'Security Audit Trail', href: '/dashboard/audit', category: 'Pages', icon: ShieldAlert, keywords: 'security logs compliance events' },
   { id: 'api-keys', name: 'API Keys & Machine Access', href: '/dashboard/api-keys', category: 'Pages', icon: Settings, keywords: 'api keys secrets tokens access' },

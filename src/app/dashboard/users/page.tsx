@@ -225,7 +225,7 @@ export default function UsersManagementPage() {
       }
     } catch (err: any) {
       setUsers([]);
-      setNotification({ type: 'error', message: err.message || 'Failed to retrieve staff directory.' });
+      setNotification({ type: 'error', message: err.message || 'Failed to retrieve users.' });
     } finally {
       setIsLoading(false);
     }
@@ -244,7 +244,7 @@ export default function UsersManagementPage() {
     setTimeout(() => setNotification(null), 4500);
   };
 
-  // Handler: Create Staff Member
+  // Handler: Create User
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!createForm.firstName || !createForm.lastName || !createForm.email) {
@@ -256,7 +256,7 @@ export default function UsersManagementPage() {
 
     try {
       await usersApi.create(createForm);
-      showToast(`Staff account for ${createForm.firstName} ${createForm.lastName} created. A temporary password has been emailed to them.`);
+      showToast(`User account for ${createForm.firstName} ${createForm.lastName} created. A temporary password has been emailed to them.`);
       setIsCreateModalOpen(false);
       setCreateForm({
         firstName: '',
@@ -276,7 +276,7 @@ export default function UsersManagementPage() {
     }
   };
 
-  // Handler: Edit Staff Profile
+  // Handler: Edit User Profile
   const handleEditUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedUser) return;
@@ -382,7 +382,7 @@ export default function UsersManagementPage() {
     setIsSubmitting(true);
     try {
       const res = await usersApi.bulkDelete(Array.from(selectedUserIds));
-      showToast(`${res.data?.deletedCount || selectedUserIds.size} staff accounts deleted successfully.`);
+      showToast(`${res.data?.deletedCount || selectedUserIds.size} user accounts deleted successfully.`);
       setSelectedUserIds(new Set());
       setIsBulkDeleteModalOpen(false);
       await fetchUsers();
@@ -453,10 +453,10 @@ export default function UsersManagementPage() {
             ))
           ) : (
             <>
-              {/* Stat 1: Total Staff */}
+              {/* Stat 1: Total Users */}
               <div className="p-5 flex flex-col justify-between hover:bg-[#FFFDF9] transition-colors">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#999083]">Total Staff</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#999083]">Total Users</span>
                   <div className="p-2 rounded-2xl bg-[#F7EFE6] text-[#B85D19] shadow-2xs">
                     <Users className="size-4" />
                   </div>
@@ -541,7 +541,7 @@ export default function UsersManagementPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search staff by name, email, title..."
+                placeholder="Search users by name, email, role..."
                 className="w-full h-11 pl-10 pr-9 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full text-xs text-[#0B251A] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#0B2E23] transition-all font-medium"
               />
               {search && (
@@ -565,7 +565,7 @@ export default function UsersManagementPage() {
                   setCurrentPage(1);
                 }}
                 options={ROLE_OPTIONS}
-                placeholder="All Roles (21)"
+                placeholder="All Roles (13)"
               />
 
               {/* Department HeroUI Select */}
@@ -623,7 +623,7 @@ export default function UsersManagementPage() {
                 </button>
               )}
 
-              {/* Add New Staff / Register Button */}
+              {/* Add New User / Register Button */}
               {(isAdmin || isSuperAdmin) && (
                 <button
                   type="button"
@@ -634,7 +634,7 @@ export default function UsersManagementPage() {
                   className="h-11 px-5 bg-[#0B2E23] hover:bg-[#0B251A] text-white text-xs font-bold rounded-full shadow-sm cursor-pointer flex items-center gap-2 transition-all shrink-0 ml-auto lg:ml-0 select-none"
                 >
                   <UserPlus className="size-4 text-[#AEFF48]" />
-                  <span>Register Staff</span>
+                  <span>Create User</span>
                 </button>
               )}
             </div>
@@ -646,7 +646,7 @@ export default function UsersManagementPage() {
           <div className="px-6 py-3 bg-[#0B251A] text-white flex items-center justify-between animate-fadeIn border-b border-black/10">
             <div className="flex items-center gap-3">
               <span className="text-xs font-bold text-[#AEFF48]">
-                {selectedUserIds.size} of {users.length} staff selected
+                {selectedUserIds.size} of {users.length} users selected
               </span>
               <button
                 type="button"
@@ -669,7 +669,7 @@ export default function UsersManagementPage() {
           </div>
         )}
 
-        {/* Section B: Staff Directory Table */}
+        {/* Section B: User Accounts Table */}
         <div className="overflow-x-auto w-full">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -684,7 +684,7 @@ export default function UsersManagementPage() {
                     title={isAllSelected ? 'Deselect All' : 'Select All'}
                   />
                 </th>
-                <th className="py-4 px-4">Staff Member</th>
+                <th className="py-4 px-4">User</th>
                 <th className="py-4 px-6">Department</th>
                 <th className="py-4 px-6">Role & RBAC Authority</th>
                 <th className="py-4 px-6">Account Status</th>
@@ -717,7 +717,7 @@ export default function UsersManagementPage() {
                 <tr>
                   <td colSpan={7} className="py-16 text-center text-slate-400">
                     <Users className="size-10 mx-auto text-slate-300 mb-2" />
-                    <p className="text-sm font-bold text-slate-700">No staff members found</p>
+                    <p className="text-sm font-bold text-slate-700">No users found</p>
                     <p className="text-xs text-slate-400 mt-1">Try adjusting your search terms or filter selections.</p>
                     {hasActiveFilters && (
                       <button
@@ -865,7 +865,7 @@ export default function UsersManagementPage() {
                               {/* Edit Profile */}
                               <button
                                 type="button"
-                                title="Edit Staff Details"
+                                title="Edit User Details"
                                 onClick={() => {
                                   setSelectedUser(u);
                                   setEditForm({
@@ -953,7 +953,7 @@ export default function UsersManagementPage() {
               <strong className="text-[#111111]">
                 {Math.min(currentPage * pageSize, meta.total)}
               </strong>{' '}
-              of <strong className="text-[#111111]">{meta.total}</strong> total staff
+              of <strong className="text-[#111111]">{meta.total}</strong> total users
             </span>
 
             <div className="flex items-center gap-2 border-l border-[#E5E7EB] pl-4">
@@ -1033,7 +1033,7 @@ export default function UsersManagementPage() {
       </Card>
 
       {/* ========================================================================= */}
-      {/* MODAL 1: Register / Add New Staff Member                                  */}
+      {/* MODAL 1: Create New User Account                                          */}
       {/* ========================================================================= */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fadeIn">
@@ -1044,8 +1044,8 @@ export default function UsersManagementPage() {
                   <UserPlus className="size-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-[#111111]">Register New Staff Member</h3>
-                  <p className="text-xs text-slate-500">Provision a corporate account and assign initial RBAC role</p>
+                  <h3 className="text-base font-bold text-[#111111]">Create New User Account</h3>
+                  <p className="text-xs text-slate-500">Provision a system login account and assign initial RBAC role</p>
                 </div>
               </div>
               <button
@@ -1090,7 +1090,7 @@ export default function UsersManagementPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Corporate Email *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address *</label>
                 <input
                   type="email"
                   required
@@ -1101,11 +1101,11 @@ export default function UsersManagementPage() {
                 />
               </div>
 
-              {/* Credentials are auto-generated server-side and emailed to the new staff member */}
+              {/* Credentials are auto-generated server-side and emailed to the new user */}
               <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-[11px] text-emerald-800 leading-relaxed">
                 <strong className="font-bold">No password needed here.</strong> A secure temporary
-                password is auto-generated by the system and delivered directly to the staff
-                member&apos;s corporate email upon provisioning.
+                password is auto-generated by the system and delivered directly to the user&apos;s
+                email upon provisioning.
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -1178,14 +1178,14 @@ export default function UsersManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 2: Edit Staff Details                                               */}
+      {/* MODAL 2: Edit User Details                                                */}
       {/* ========================================================================= */}
       {isEditModalOpen && selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fadeIn">
           <div className="w-full max-w-md rounded-4xl bg-white p-6 shadow-2xl border border-[#E5E7EB]">
             <div className="flex items-center justify-between pb-4 border-b border-[#E5E7EB]">
               <div>
-                <h3 className="text-base font-bold text-[#111111]">Edit Staff Details</h3>
+                <h3 className="text-base font-bold text-[#111111]">Edit User Details</h3>
                 <p className="text-xs text-slate-500">{selectedUser.email}</p>
               </div>
               <button
@@ -1399,10 +1399,10 @@ export default function UsersManagementPage() {
               <div className="p-2.5 rounded-2xl bg-red-50 text-red-600">
                 <Trash2 className="size-5" />
               </div>
-              <h3 className="text-base font-bold text-[#111111]">Bulk Delete Staff Accounts</h3>
+              <h3 className="text-base font-bold text-[#111111]">Bulk Delete User Accounts</h3>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Are you sure you want to permanently delete <strong className="text-slate-900">{selectedUserIds.size} staff accounts</strong>? All associated sessions and permissions will be permanently revoked. This action cannot be undone.
+              Are you sure you want to permanently delete <strong className="text-slate-900">{selectedUserIds.size} user accounts</strong>? All associated sessions and permissions will be permanently revoked. This action cannot be undone.
             </p>
 
             <div className="mt-6 flex items-center justify-end gap-2.5">

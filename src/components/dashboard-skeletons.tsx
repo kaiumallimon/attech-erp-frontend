@@ -90,7 +90,7 @@ export function DashboardPageSkeleton({ pathname = '/dashboard' }: { pathname?: 
     );
   }
 
-  // 2. Staff & Roles Management Skeleton (/dashboard/users)
+  // 2. User Accounts Management Skeleton (/dashboard/users)
   if (pathname.includes('/dashboard/users')) {
     return (
       <div className="w-full space-y-6 animate-fadeIn">
