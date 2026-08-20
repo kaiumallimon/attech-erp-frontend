@@ -19,6 +19,11 @@ import {
   KeyRound,
   Mail,
   Briefcase,
+  Target,
+  Flame,
+  CheckCircle2,
+  FileText,
+  BarChart3,
 } from 'lucide-react';
 import { useAuth } from '../context/auth-context';
 import AtTechLogo from './ui/attech-logo';
@@ -52,6 +57,20 @@ export function Sidebar({ onNavigate }: SidebarProps) {
       title: 'Core',
       items: [
         { name: 'Dashboard Overview', href: '/dashboard', icon: LayoutDashboard },
+      ],
+    },
+    {
+      title: 'CRM',
+      items: [
+        { name: 'Dashboard', href: '/dashboard/crm', icon: LayoutDashboard },
+        { name: 'Leads', href: '/dashboard/crm/leads', icon: Flame },
+        { name: 'Accounts', href: '/dashboard/crm/accounts', icon: Building2 },
+        { name: 'Contacts', href: '/dashboard/crm/contacts', icon: Users },
+        { name: 'Deals', href: '/dashboard/crm/deals', icon: Target },
+        { name: 'Activities', href: '/dashboard/crm/activities', icon: CheckCircle2 },
+        { name: 'Proposals', href: '/dashboard/crm/proposals', icon: FileText },
+        { name: 'Reports', href: '/dashboard/crm/reports', icon: BarChart3 },
+        { name: 'Settings', href: '/dashboard/crm/settings', icon: Settings },
       ],
     },
     {

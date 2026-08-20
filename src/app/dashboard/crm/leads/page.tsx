@@ -1,0 +1,755 @@
+'use client';
+
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  AlertCircle,
+  Building2,
+  CheckCircle2,
+  Edit2,
+  ExternalLink,
+  Flame,
+  Plus,
+  Search,
+  Target,
+  Trash2,
+  X,
+} from 'lucide-react';
+import { crmApi, employeesApi } from '../../../../lib/api';
+import {
+  CrmAccount,
+  CrmLead,
+  CrmLeadSource,
+  CrmPipeline,
+  LeadStatus,
+} from '../../../../types/crm';
+import CrmNavHeader from '../../../../components/crm/crm-nav-header';
+import HeroSelect, { SelectOption } from '../../../../components/ui/hero-select';
+
+export default function CrmLeadsPage() {
+  const [loading, setLoading] = useState(true);
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  const [leads, setLeads] = useState<CrmLead[]>([]);
+  const [leadsSearch, setLeadsSearch] = useState('');
+  const [leadsStatusFilter, setLeadsStatusFilter] = useState('all');
+  const [leadsSourceFilter, setLeadsSourceFilter] = useState('all');
+
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [leadSources, setLeadSources] = useState<CrmLeadSource[]>([]);
+  const [pipelines, setPipelines] = useState<CrmPipeline[]>([]);
+  const [accounts, setAccounts] = useState<CrmAccount[]>([]);
+
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+  const [editingLead, setEditingLead] = useState<CrmLead | null>(null);
+  const [leadForm, setLeadForm] = useState<{
+    firstName: string;
+    lastName: string;
+    companyName: string;
+    jobTitle: string;
+    email: string;
+    phone: string;
+    website: string;
+    sourceId: string;
+    status: string;
+    ownerId: string;
+    estimatedValue: number;
+    description: string;
+    tags: string[];
+  }>({
+    firstName: '',
+    lastName: '',
+    companyName: '',
+    jobTitle: '',
+    email: '',
+    phone: '',
+    website: '',
+    sourceId: '',
+    status: LeadStatus.NEW,
+    ownerId: '',
+    estimatedValue: 20000,
+    description: '',
+    tags: [],
+  });
+
+  // Lead Conversion Modal State
+  const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+  const [convertingLead, setConvertingLead] = useState<CrmLead | null>(null);
+  const [convertForm, setConvertForm] = useState<{
+    existingAccountId: string;
+    newAccountName: string;
+    existingContactId: string;
+    createDeal: boolean;
+    dealName: string;
+    dealValue: number;
+    pipelineId: string;
+    stageId: string;
+  }>({
+    existingAccountId: '',
+    newAccountName: '',
+    existingContactId: '',
+    createDeal: true,
+    dealName: '',
+    dealValue: 0,
+    pipelineId: '',
+    stageId: '',
+  });
+
+  const showToast = (text: string, type: 'success' | 'error' = 'success') => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  const loadLeads = async () => {
+    setLoading(true);
+    try {
+      const [leadsRes, empRes, srcRes, pipeRes, accRes] = await Promise.all([
+        crmApi.leads.list({
+          search: leadsSearch,
+          status: leadsStatusFilter,
+          sourceId: leadsSourceFilter,
+        }),
+        employeesApi.list({ limit: 100 }).catch(() => ({ data: [] })),
+        crmApi.settings.getLeadSources().catch(() => []),
+        crmApi.settings.getPipelines().catch(() => []),
+        crmApi.accounts.list().catch(() => ({ data: [] })),
+      ]);
+
+      setLeads(Array.isArray(leadsRes) ? leadsRes : Array.isArray(leadsRes?.items) ? leadsRes.items : Array.isArray(leadsRes?.data) ? leadsRes.data : []);
+
+      const empList = Array.isArray(empRes)
+        ? empRes
+        : Array.isArray((empRes as any)?.data)
+        ? (empRes as any).data
+        : Array.isArray((empRes as any)?.items)
+        ? (empRes as any).items
+        : [];
+      setEmployees(empList);
+
+      setLeadSources(Array.isArray(srcRes) ? srcRes : Array.isArray((srcRes as any)?.data) ? (srcRes as any).data : []);
+      setPipelines(Array.isArray(pipeRes) ? pipeRes : Array.isArray((pipeRes as any)?.data) ? (pipeRes as any).data : []);
+      setAccounts(Array.isArray(accRes) ? accRes : Array.isArray((accRes as any)?.items) ? (accRes as any).items : Array.isArray((accRes as any)?.data) ? (accRes as any).data : []);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to load leads', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadLeads();
+  }, [leadsStatusFilter, leadsSourceFilter]);
+
+  const employeeOptions: SelectOption[] = useMemo(() => {
+    const list = Array.isArray(employees) ? employees : [];
+    return [
+      { key: '', value: '', label: 'Unassigned' },
+      ...list.map((e) => ({
+        key: e.id || e._id,
+        value: e.id || e._id,
+        label: `${e.userId?.firstName || ''} ${e.userId?.lastName || ''} (${e.employeeId || 'Staff'})`.trim(),
+      })),
+    ];
+  }, [employees]);
+
+  const leadSourceOptions: SelectOption[] = useMemo(() => {
+    const list = Array.isArray(leadSources) ? leadSources : [];
+    return [
+      { key: '', value: '', label: 'None / Select Source' },
+      ...list.map((s) => ({ key: s.id, value: s.id, label: s.name })),
+    ];
+  }, [leadSources]);
+
+  const pipelineOptions: SelectOption[] = useMemo(() => {
+    const list = Array.isArray(pipelines) ? pipelines : [];
+    return list.map((p) => ({
+      key: p.id,
+      value: p.id,
+      label: p.isDefault ? `${p.name} (Default)` : p.name,
+    }));
+  }, [pipelines]);
+
+  const accountSelectOptions: SelectOption[] = useMemo(() => {
+    const list = Array.isArray(accounts) ? accounts : [];
+    return [
+      { key: '', value: '', label: 'Select Client Account' },
+      ...list.map((a) => ({ key: a.id, value: a.id, label: a.name })),
+    ];
+  }, [accounts]);
+
+  const handleSaveLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingLead) {
+        await crmApi.leads.update(editingLead.id, leadForm);
+        showToast('Lead updated successfully.');
+      } else {
+        await crmApi.leads.create(leadForm);
+        showToast('New Lead added successfully.');
+      }
+      setIsLeadModalOpen(false);
+      setEditingLead(null);
+      void loadLeads();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to save lead', 'error');
+    }
+  };
+
+  const handleOpenConvertModal = (lead: CrmLead) => {
+    setConvertingLead(lead);
+    setConvertForm({
+      existingAccountId: '',
+      newAccountName: lead.companyName || `${lead.firstName} ${lead.lastName}`,
+      existingContactId: '',
+      createDeal: true,
+      dealName: `${lead.companyName || lead.firstName} - Engagement`,
+      dealValue: lead.estimatedValue || 25000,
+      pipelineId: pipelines[0]?.id || '',
+      stageId: pipelines[0]?.stages?.[0]?.id || '',
+    });
+    setIsConvertModalOpen(true);
+  };
+
+  const handleExecuteConversion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!convertingLead) return;
+    try {
+      await crmApi.leads.convert(convertingLead.id, convertForm);
+      showToast(`Lead '${convertingLead.firstName} ${convertingLead.lastName}' converted successfully!`);
+      setIsConvertModalOpen(false);
+      setConvertingLead(null);
+      void loadLeads();
+    } catch (err: any) {
+      showToast(err.message || 'Lead conversion failed', 'error');
+    }
+  };
+
+  return (
+    <div className="space-y-6 pb-20 select-none">
+      {toastMessage && (
+        <div
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl shadow-xl border flex items-center gap-2 text-xs font-bold transition-all duration-300 animate-fadeIn ${
+            toastMessage.type === 'success'
+              ? 'bg-[#0B2E23] text-[#AEFF48] border-[#AEFF48]/30'
+              : 'bg-rose-950 text-rose-200 border-rose-800'
+          }`}
+        >
+          {toastMessage.type === 'success' ? <CheckCircle2 className="size-4 shrink-0" /> : <AlertCircle className="size-4 shrink-0" />}
+          <span>{toastMessage.text}</span>
+        </div>
+      )}
+
+      <CrmNavHeader
+        title="Prospect Leads Directory"
+        subtitle="Manage inbound inquiries, qualify requirements, and convert into Client Accounts & Pipeline Deals."
+        onRefresh={() => void loadLeads()}
+        isRefreshing={loading}
+        actionButton={
+          <button
+            type="button"
+            onClick={() => {
+              setEditingLead(null);
+              setLeadForm({
+                firstName: '',
+                lastName: '',
+                companyName: '',
+                jobTitle: '',
+                email: '',
+                phone: '',
+                website: '',
+                sourceId: leadSources[0]?.id || '',
+                status: LeadStatus.NEW,
+                ownerId: employees[0]?.id || '',
+                estimatedValue: 20000,
+                description: '',
+                tags: [],
+              });
+              setIsLeadModalOpen(true);
+            }}
+            className="h-10 px-5 rounded-full bg-[#AEFF48] text-[#0B2E23] font-bold text-xs hover:bg-[#9DE83E] transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+          >
+            <Plus className="size-4" />
+            <span>Add Prospect Lead</span>
+          </button>
+        }
+      />
+
+      {/* Search & Filters */}
+      <div className="p-4 rounded-3xl bg-white border border-[#E5E7EB] shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search prospects by name, company, email..."
+              value={leadsSearch}
+              onChange={(e) => setLeadsSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && void loadLeads()}
+              className="w-full h-10 pl-10 pr-4 rounded-full border border-[#E5E7EB] text-xs text-slate-800 focus:outline-none focus:border-[#0B2E23]"
+            />
+          </div>
+
+          <select
+            value={leadsStatusFilter}
+            onChange={(e) => setLeadsStatusFilter(e.target.value)}
+            className="h-10 px-4 rounded-full border border-[#E5E7EB] text-xs font-semibold text-slate-700 bg-white"
+          >
+            <option value="all">All Statuses</option>
+            <option value="NEW">New</option>
+            <option value="CONTACTED">Contacted</option>
+            <option value="QUALIFIED">Qualified</option>
+            <option value="UNQUALIFIED">Unqualified</option>
+            <option value="CONVERTED">Converted</option>
+          </select>
+
+          <select
+            value={leadsSourceFilter}
+            onChange={(e) => setLeadsSourceFilter(e.target.value)}
+            className="h-10 px-4 rounded-full border border-[#E5E7EB] text-xs font-semibold text-slate-700 bg-white"
+          >
+            <option value="all">All Lead Sources</option>
+            {leadSources.map((src) => (
+              <option key={src.id} value={src.id}>
+                {src.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => void loadLeads()}
+          className="h-10 px-4 rounded-full border border-[#E5E7EB] text-slate-700 font-bold text-xs hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+        >
+          Search
+        </button>
+      </div>
+
+      {/* Leads Table */}
+      <div className="rounded-4xl bg-white border border-[#E5E7EB] shadow-xs overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-[#FAF7F2] border-b border-[#E5E7EB] text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                <th className="py-3.5 px-4">Prospect Name</th>
+                <th className="py-3.5 px-4">Company</th>
+                <th className="py-3.5 px-4">Contact Info</th>
+                <th className="py-3.5 px-4">Source</th>
+                <th className="py-3.5 px-4">Estimated Value</th>
+                <th className="py-3.5 px-4">Status</th>
+                <th className="py-3.5 px-4">Owner</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#E5E7EB]">
+              {leads.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-12 text-slate-400 italic">
+                    No leads found. Click &quot;Add Prospect Lead&quot; to register new opportunities.
+                  </td>
+                </tr>
+              ) : (
+                leads.map((lead) => (
+                  <tr key={lead.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
+                    <td className="py-3.5 px-4 font-bold text-slate-900">
+                      {lead.firstName} {lead.lastName}
+                      {lead.jobTitle && (
+                        <span className="block text-[10px] font-normal text-slate-400">{lead.jobTitle}</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 font-semibold text-slate-700">
+                      {lead.companyName || '—'}
+                      {lead.website && (
+                        <a
+                          href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[10px] text-emerald-700 hover:underline flex items-center gap-1 mt-0.5"
+                        >
+                          <span>Website</span>
+                          <ExternalLink className="size-2.5" />
+                        </a>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 space-y-0.5">
+                      {lead.email && <p className="text-slate-600">{lead.email}</p>}
+                      {lead.phone && <p className="text-[10px] text-slate-400">{lead.phone}</p>}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold text-[10px]">
+                        {lead.sourceId?.name || 'Direct'}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 font-bold text-[#0B2E23]">
+                      ${(lead.estimatedValue || 0).toLocaleString()} {lead.currency}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                          lead.status === 'CONVERTED'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            : lead.status === 'QUALIFIED'
+                            ? 'bg-sky-100 text-sky-800'
+                            : lead.status === 'UNQUALIFIED'
+                            ? 'bg-rose-100 text-rose-800'
+                            : lead.status === 'CONTACTED'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        {lead.status}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-slate-600">
+                      {lead.ownerId?.userId
+                        ? `${lead.ownerId.userId.firstName} ${lead.ownerId.userId.lastName}`
+                        : 'Unassigned'}
+                    </td>
+                    <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
+                      {lead.status !== 'CONVERTED' && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenConvertModal(lead)}
+                          className="px-3 py-1 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-[10px] hover:bg-[#0B251A] cursor-pointer transition-colors"
+                        >
+                          Convert Lead
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingLead(lead);
+                          setLeadForm({
+                            firstName: lead.firstName,
+                            lastName: lead.lastName,
+                            companyName: lead.companyName || '',
+                            jobTitle: lead.jobTitle || '',
+                            email: lead.email || '',
+                            phone: lead.phone || '',
+                            website: lead.website || '',
+                            sourceId: (lead.sourceId as any)?.id || (lead.sourceId as any)?._id || '',
+                            status: lead.status as string,
+                            ownerId: (lead.ownerId as any)?.id || (lead.ownerId as any)?._id || '',
+                            estimatedValue: lead.estimatedValue || 0,
+                            description: lead.description || '',
+                            tags: lead.tags || [],
+                          });
+                          setIsLeadModalOpen(true);
+                        }}
+                        className="size-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 inline-flex items-center justify-center cursor-pointer transition-colors"
+                        title="Edit Lead"
+                      >
+                        <Edit2 className="size-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (confirm(`Delete lead ${lead.firstName} ${lead.lastName}?`)) {
+                            await crmApi.leads.delete(lead.id);
+                            showToast('Lead deleted.');
+                            void loadLeads();
+                          }
+                        }}
+                        className="size-7 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 inline-flex items-center justify-center cursor-pointer transition-colors"
+                        title="Delete Lead"
+                      >
+                        <Trash2 className="size-3" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Modal: Add/Edit Lead */}
+      {isLeadModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="w-full max-w-lg rounded-4xl bg-white shadow-2xl border border-[#E5E7EB] overflow-hidden my-8">
+            <div className="p-6 bg-[#0B2E23] text-white flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-black">{editingLead ? 'Edit Prospect Lead' : 'Register Inbound Lead'}</h3>
+                <p className="text-xs text-white/70">Lead captures prospect info before qualification</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLeadModalOpen(false)}
+                className="size-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveLead} className="p-6 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">First Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={leadForm.firstName}
+                    onChange={(e) => setLeadForm((prev) => ({ ...prev, firstName: e.target.value }))}
+                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Last Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={leadForm.lastName}
+                    onChange={(e) => setLeadForm((prev) => ({ ...prev, lastName: e.target.value }))}
+                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Company Name</label>
+                  <input
+                    type="text"
+                    value={leadForm.companyName}
+                    onChange={(e) => setLeadForm((prev) => ({ ...prev, companyName: e.target.value }))}
+                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Job Title</label>
+                  <input
+                    type="text"
+                    value={leadForm.jobTitle}
+                    onChange={(e) => setLeadForm((prev) => ({ ...prev, jobTitle: e.target.value }))}
+                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={leadForm.email}
+                    onChange={(e) => setLeadForm((prev) => ({ ...prev, email: e.target.value }))}
+                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Phone</label>
+                  <input
+                    type="text"
+                    value={leadForm.phone}
+                    onChange={(e) => setLeadForm((prev) => ({ ...prev, phone: e.target.value }))}
+                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Lead Source</label>
+                  <HeroSelect
+                    value={leadForm.sourceId}
+                    options={leadSourceOptions}
+                    onChange={(val) => setLeadForm((prev) => ({ ...prev, sourceId: val }))}
+                    className="w-full h-10 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Lead Status</label>
+                  <select
+                    value={leadForm.status}
+                    onChange={(e) => setLeadForm((prev) => ({ ...prev, status: e.target.value }))}
+                    className="w-full h-10 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-xs text-slate-800 font-semibold"
+                  >
+                    <option value="NEW">New</option>
+                    <option value="CONTACTED">Contacted</option>
+                    <option value="QUALIFIED">Qualified</option>
+                    <option value="UNQUALIFIED">Unqualified</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Assigned Sales Owner</label>
+                  <HeroSelect
+                    value={leadForm.ownerId}
+                    options={employeeOptions}
+                    onChange={(val) => setLeadForm((prev) => ({ ...prev, ownerId: val }))}
+                    className="w-full h-10 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Estimated Value ($)</label>
+                  <input
+                    type="number"
+                    value={leadForm.estimatedValue}
+                    onChange={(e) => setLeadForm((prev) => ({ ...prev, estimatedValue: Number(e.target.value) }))}
+                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs font-bold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Scope & Notes</label>
+                <textarea
+                  rows={3}
+                  value={leadForm.description}
+                  onChange={(e) => setLeadForm((prev) => ({ ...prev, description: e.target.value }))}
+                  placeholder="Details of client request, tech stack requirements..."
+                  className="w-full p-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsLeadModalOpen(false)}
+                  className="h-10 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="h-10 px-6 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer shadow-xs"
+                >
+                  {editingLead ? 'Save Changes' : 'Create Lead'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Convert Lead */}
+      {isConvertModalOpen && convertingLead && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="w-full max-w-xl rounded-4xl bg-white shadow-2xl border border-[#E5E7EB] overflow-hidden my-8">
+            <div className="p-6 bg-linear-to-r from-[#0B2E23] to-[#0B251A] text-white flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#AEFF48]/20 text-[#AEFF48] text-[9px] font-extrabold uppercase">
+                    Conversion Engine
+                  </span>
+                </div>
+                <h3 className="text-base font-black mt-1">Convert Lead to Client & Deal</h3>
+                <p className="text-xs text-white/70">
+                  Converting: {convertingLead.firstName} {convertingLead.lastName} ({convertingLead.companyName || 'Lead'})
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsConvertModalOpen(false)}
+                className="size-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleExecuteConversion} className="p-6 space-y-4 text-xs">
+              <div className="p-4 rounded-3xl bg-[#FAF7F2] border border-[#ECE5DA] space-y-3">
+                <div className="flex items-center gap-2">
+                  <Building2 className="size-4 text-emerald-800" />
+                  <h4 className="font-extrabold text-slate-900 text-xs">1. Client Account</h4>
+                </div>
+
+                <div className="space-y-2">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Create New Account Name</label>
+                    <input
+                      type="text"
+                      value={convertForm.newAccountName}
+                      onChange={(e) => setConvertForm((prev) => ({ ...prev, newAccountName: e.target.value }))}
+                      className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-bold text-slate-800"
+                    />
+                  </div>
+                  <div className="text-center text-[10px] text-slate-400 font-bold">— OR LINK EXISTING —</div>
+                  <HeroSelect
+                    value={convertForm.existingAccountId}
+                    options={accountSelectOptions}
+                    onChange={(val) => setConvertForm((prev) => ({ ...prev, existingAccountId: val }))}
+                    placeholder="Link to existing account"
+                    className="w-full h-10 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 rounded-3xl bg-[#FAF7F2] border border-[#ECE5DA] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Target className="size-4 text-emerald-800" />
+                    <h4 className="font-extrabold text-slate-900 text-xs">2. Sales Opportunity (Deal)</h4>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={convertForm.createDeal}
+                      onChange={(e) => setConvertForm((prev) => ({ ...prev, createDeal: e.target.checked }))}
+                      className="size-4 rounded accent-[#0B2E23]"
+                    />
+                    <span className="text-[11px] font-bold text-slate-700">Create Deal</span>
+                  </label>
+                </div>
+
+                {convertForm.createDeal && (
+                  <div className="space-y-3 pt-2">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Deal Title</label>
+                      <input
+                        type="text"
+                        required
+                        value={convertForm.dealName}
+                        onChange={(e) => setConvertForm((prev) => ({ ...prev, dealName: e.target.value }))}
+                        className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-bold text-slate-800"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Target Pipeline</label>
+                        <HeroSelect
+                          value={convertForm.pipelineId}
+                          options={pipelineOptions}
+                          onChange={(val) => setConvertForm((prev) => ({ ...prev, pipelineId: val }))}
+                          className="w-full h-10 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Deal Value ($)</label>
+                        <input
+                          type="number"
+                          value={convertForm.dealValue}
+                          onChange={(e) => setConvertForm((prev) => ({ ...prev, dealValue: Number(e.target.value) }))}
+                          className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-black text-[#0B2E23]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsConvertModalOpen(false)}
+                  className="h-10 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="h-10 px-6 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer shadow-xs"
+                >
+                  Confirm & Convert Lead
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

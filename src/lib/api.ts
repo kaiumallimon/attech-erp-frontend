@@ -1209,6 +1209,412 @@ export const skillsApi = {
   },
 };
 
+// =========================================================================
+// CRM API CLIENT
+// =========================================================================
+
+export const crmApi = {
+  // Accounts
+  accounts: {
+    list: async (params?: { search?: string; status?: string; industry?: string; page?: number; limit?: number }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.search) searchParams.set('search', params.search);
+      if (params?.status && params.status !== 'all') searchParams.set('status', params.status);
+      if (params?.industry && params.industry !== 'all') searchParams.set('industry', params.industry);
+      if (params?.page) searchParams.set('page', params.page.toString());
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      const qs = searchParams.toString();
+      const res = await apiClient<any>(`/crm/accounts${qs ? `?${qs}` : ''}`);
+      return (res as any)?.data ?? res;
+    },
+    get: async (id: string) => {
+      const res = await apiClient<any>(`/crm/accounts/${id}`);
+      return (res as any)?.data ?? res;
+    },
+    create: async (payload: any) => {
+      const res = await apiClient<any>('/crm/accounts', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    update: async (id: string, payload: any) => {
+      const res = await apiClient<any>(`/crm/accounts/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    delete: async (id: string) => {
+      return apiClient<any>(`/crm/accounts/${id}`, { method: 'DELETE' });
+    },
+  },
+
+  // Contacts
+  contacts: {
+    list: async (params?: { search?: string; accountId?: string; status?: string; page?: number; limit?: number }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.search) searchParams.set('search', params.search);
+      if (params?.accountId && params.accountId !== 'all') searchParams.set('accountId', params.accountId);
+      if (params?.status && params.status !== 'all') searchParams.set('status', params.status);
+      if (params?.page) searchParams.set('page', params.page.toString());
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      const qs = searchParams.toString();
+      const res = await apiClient<any>(`/crm/contacts${qs ? `?${qs}` : ''}`);
+      return (res as any)?.data ?? res;
+    },
+    get: async (id: string) => {
+      const res = await apiClient<any>(`/crm/contacts/${id}`);
+      return (res as any)?.data ?? res;
+    },
+    create: async (payload: any) => {
+      const res = await apiClient<any>('/crm/contacts', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    update: async (id: string, payload: any) => {
+      const res = await apiClient<any>(`/crm/contacts/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    delete: async (id: string) => {
+      return apiClient<any>(`/crm/contacts/${id}`, { method: 'DELETE' });
+    },
+  },
+
+  // Leads
+  leads: {
+    list: async (params?: { search?: string; status?: string; sourceId?: string; ownerId?: string; page?: number; limit?: number }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.search) searchParams.set('search', params.search);
+      if (params?.status && params.status !== 'all') searchParams.set('status', params.status);
+      if (params?.sourceId && params.sourceId !== 'all') searchParams.set('sourceId', params.sourceId);
+      if (params?.ownerId && params.ownerId !== 'all') searchParams.set('ownerId', params.ownerId);
+      if (params?.page) searchParams.set('page', params.page.toString());
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      const qs = searchParams.toString();
+      const res = await apiClient<any>(`/crm/leads${qs ? `?${qs}` : ''}`);
+      return (res as any)?.data ?? res;
+    },
+    get: async (id: string) => {
+      const res = await apiClient<any>(`/crm/leads/${id}`);
+      return (res as any)?.data ?? res;
+    },
+    create: async (payload: any) => {
+      const res = await apiClient<any>('/crm/leads', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    update: async (id: string, payload: any) => {
+      const res = await apiClient<any>(`/crm/leads/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    convert: async (id: string, payload: any) => {
+      const res = await apiClient<any>(`/crm/leads/${id}/convert`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    delete: async (id: string) => {
+      return apiClient<any>(`/crm/leads/${id}`, { method: 'DELETE' });
+    },
+  },
+
+  // Deals
+  deals: {
+    list: async (params?: { search?: string; pipelineId?: string; stageId?: string; accountId?: string; status?: string; page?: number; limit?: number }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.search) searchParams.set('search', params.search);
+      if (params?.pipelineId && params.pipelineId !== 'all') searchParams.set('pipelineId', params.pipelineId);
+      if (params?.stageId && params.stageId !== 'all') searchParams.set('stageId', params.stageId);
+      if (params?.accountId && params.accountId !== 'all') searchParams.set('accountId', params.accountId);
+      if (params?.status && params.status !== 'all') searchParams.set('status', params.status);
+      if (params?.page) searchParams.set('page', params.page.toString());
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      const qs = searchParams.toString();
+      const res = await apiClient<any>(`/crm/deals${qs ? `?${qs}` : ''}`);
+      return (res as any)?.data ?? res;
+    },
+    kanban: async (pipelineId?: string) => {
+      const qs = pipelineId && pipelineId !== 'all' ? `?pipelineId=${pipelineId}` : '';
+      const res = await apiClient<any>(`/crm/deals/kanban${qs}`);
+      return (res as any)?.data ?? res;
+    },
+    get: async (id: string) => {
+      const res = await apiClient<any>(`/crm/deals/${id}`);
+      return (res as any)?.data ?? res;
+    },
+    create: async (payload: any) => {
+      const res = await apiClient<any>('/crm/deals', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    update: async (id: string, payload: any) => {
+      const res = await apiClient<any>(`/crm/deals/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    updateStage: async (id: string, payload: { stageId: string; probability?: number; lostReasonId?: string; lostNotes?: string }) => {
+      const res = await apiClient<any>(`/crm/deals/${id}/stage`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    markWon: async (id: string) => {
+      const res = await apiClient<any>(`/crm/deals/${id}/won`, {
+        method: 'POST',
+      });
+      return (res as any)?.data ?? res;
+    },
+    markLost: async (id: string, payload: { lostReasonId?: string; lostNotes?: string }) => {
+      const res = await apiClient<any>(`/crm/deals/${id}/lost`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    delete: async (id: string) => {
+      return apiClient<any>(`/crm/deals/${id}`, { method: 'DELETE' });
+    },
+  },
+
+  // Activities
+  activities: {
+    list: async (params?: { type?: string; status?: string; relatedEntityType?: string; relatedEntityId?: string; assignedToId?: string; page?: number; limit?: number }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.type && params.type !== 'all') searchParams.set('type', params.type);
+      if (params?.status && params.status !== 'all') searchParams.set('status', params.status);
+      if (params?.relatedEntityType && params.relatedEntityType !== 'all') searchParams.set('relatedEntityType', params.relatedEntityType);
+      if (params?.relatedEntityId) searchParams.set('relatedEntityId', params.relatedEntityId);
+      if (params?.assignedToId) searchParams.set('assignedToId', params.assignedToId);
+      if (params?.page) searchParams.set('page', params.page.toString());
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      const qs = searchParams.toString();
+      const res = await apiClient<any>(`/crm/activities${qs ? `?${qs}` : ''}`);
+      return (res as any)?.data ?? res;
+    },
+    get: async (id: string) => {
+      const res = await apiClient<any>(`/crm/activities/${id}`);
+      return (res as any)?.data ?? res;
+    },
+    create: async (payload: any) => {
+      const res = await apiClient<any>('/crm/activities', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    update: async (id: string, payload: any) => {
+      const res = await apiClient<any>(`/crm/activities/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    complete: async (id: string) => {
+      const res = await apiClient<any>(`/crm/activities/${id}/complete`, {
+        method: 'POST',
+      });
+      return (res as any)?.data ?? res;
+    },
+    delete: async (id: string) => {
+      return apiClient<any>(`/crm/activities/${id}`, { method: 'DELETE' });
+    },
+  },
+
+  // Proposals
+  proposals: {
+    list: async (params?: { dealId?: string; status?: string; search?: string; page?: number; limit?: number }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.dealId) searchParams.set('dealId', params.dealId);
+      if (params?.status && params.status !== 'all') searchParams.set('status', params.status);
+      if (params?.search) searchParams.set('search', params.search);
+      if (params?.page) searchParams.set('page', params.page.toString());
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      const qs = searchParams.toString();
+      const res = await apiClient<any>(`/crm/proposals${qs ? `?${qs}` : ''}`);
+      return (res as any)?.data ?? res;
+    },
+    get: async (id: string) => {
+      const res = await apiClient<any>(`/crm/proposals/${id}`);
+      return (res as any)?.data ?? res;
+    },
+    create: async (payload: any) => {
+      const res = await apiClient<any>('/crm/proposals', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    update: async (id: string, payload: any) => {
+      const res = await apiClient<any>(`/crm/proposals/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    updateStatus: async (id: string, status: string) => {
+      const res = await apiClient<any>(`/crm/proposals/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      });
+      return (res as any)?.data ?? res;
+    },
+    delete: async (id: string) => {
+      return apiClient<any>(`/crm/proposals/${id}`, { method: 'DELETE' });
+    },
+  },
+
+  // Reports
+  reports: {
+    dashboard: async () => {
+      const res = await apiClient<any>('/crm/reports/dashboard');
+      return (res as any)?.data ?? res;
+    },
+    funnel: async (pipelineId?: string) => {
+      const qs = pipelineId && pipelineId !== 'all' ? `?pipelineId=${pipelineId}` : '';
+      const res = await apiClient<any>(`/crm/reports/funnel${qs}`);
+      return (res as any)?.data ?? res;
+    },
+  },
+
+  // Settings
+  settings: {
+    getPipelines: async () => {
+      const res = await apiClient<any>('/crm/settings/pipelines');
+      return extractArray<any>(res);
+    },
+    createPipeline: async (payload: any) => {
+      const res = await apiClient<any>('/crm/settings/pipelines', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    updatePipeline: async (id: string, payload: any) => {
+      const res = await apiClient<any>(`/crm/settings/pipelines/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    deletePipeline: async (id: string) => {
+      return apiClient<any>(`/crm/settings/pipelines/${id}`, { method: 'DELETE' });
+    },
+    createStage: async (pipelineId: string, payload: any) => {
+      const res = await apiClient<any>(`/crm/settings/pipelines/${pipelineId}/stages`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    updateStage: async (stageId: string, payload: any) => {
+      const res = await apiClient<any>(`/crm/settings/stages/${stageId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    deleteStage: async (stageId: string) => {
+      return apiClient<any>(`/crm/settings/stages/${stageId}`, { method: 'DELETE' });
+    },
+    reorderStages: async (stages: Array<{ stageId: string; order: number }>) => {
+      const res = await apiClient<any>('/crm/settings/stages/reorder', {
+        method: 'POST',
+        body: JSON.stringify({ stages }),
+      });
+      return (res as any)?.data ?? res;
+    },
+    getLeadSources: async () => {
+      const res = await apiClient<any>('/crm/settings/lead-sources');
+      return extractArray<any>(res);
+    },
+    createLeadSource: async (payload: any) => {
+      const res = await apiClient<any>('/crm/settings/lead-sources', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    deleteLeadSource: async (id: string) => {
+      return apiClient<any>(`/crm/settings/lead-sources/${id}`, { method: 'DELETE' });
+    },
+    getDealTypes: async () => {
+      const res = await apiClient<any>('/crm/settings/deal-types');
+      return extractArray<any>(res);
+    },
+    createDealType: async (payload: any) => {
+      const res = await apiClient<any>('/crm/settings/deal-types', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    deleteDealType: async (id: string) => {
+      return apiClient<any>(`/crm/settings/deal-types/${id}`, { method: 'DELETE' });
+    },
+    getLostReasons: async () => {
+      const res = await apiClient<any>('/crm/settings/lost-reasons');
+      return extractArray<any>(res);
+    },
+    createLostReason: async (payload: any) => {
+      const res = await apiClient<any>('/crm/settings/lost-reasons', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    deleteLostReason: async (id: string) => {
+      return apiClient<any>(`/crm/settings/lost-reasons/${id}`, { method: 'DELETE' });
+    },
+    getTags: async () => {
+      const res = await apiClient<any>('/crm/settings/tags');
+      return extractArray<any>(res);
+    },
+    createTag: async (payload: any) => {
+      const res = await apiClient<any>('/crm/settings/tags', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    deleteTag: async (id: string) => {
+      return apiClient<any>(`/crm/settings/tags/${id}`, { method: 'DELETE' });
+    },
+    getCustomFields: async (entityType?: string) => {
+      const qs = entityType ? `?entityType=${entityType}` : '';
+      const res = await apiClient<any>(`/crm/settings/custom-fields${qs}`);
+      return extractArray<any>(res);
+    },
+    createCustomField: async (payload: any) => {
+      const res = await apiClient<any>('/crm/settings/custom-fields', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return (res as any)?.data ?? res;
+    },
+    deleteCustomField: async (id: string) => {
+      return apiClient<any>(`/crm/settings/custom-fields/${id}`, { method: 'DELETE' });
+    },
+  },
+};
+
+
 
 
 
