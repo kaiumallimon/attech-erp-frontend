@@ -27,6 +27,18 @@ interface SidebarProps {
   onNavigate?: () => void;
 }
 
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  adminOnly?: boolean;
+}
+
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
+
 export function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const { user, role, isAdmin, isSuperAdmin, logout } = useAuth();
@@ -35,25 +47,41 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   const initials = `${user?.firstName?.[0] || 'U'}${user?.lastName?.[0] || 'A'}`.toUpperCase();
   const fullName = user ? `${user.firstName} ${user.lastName}` : 'Team Member';
 
-  const overviewNav = [
-    { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-  ];
-
-  const governanceNav = [
-    { name: 'Company & Org', href: '/dashboard/company', icon: Building2 },
-    { name: 'Employees', href: '/dashboard/employees', icon: Briefcase },
-    { name: 'Users', href: '/dashboard/users', icon: Users },
-    { name: 'CDN & Storage', href: '/dashboard/cdn', icon: Cloud },
-    { name: 'Security & Audit', href: '/dashboard/audit', icon: ShieldAlert },
-    { name: 'API Keys & Access', href: '/dashboard/api-keys', icon: KeyRound },
-  ];
-
-  const operationsNav = [
-    { name: 'Newsletter & Email', href: '/dashboard/newsletter', icon: Mail },
-  ];
-
-  const accountNav = [
-    { name: 'My Profile & RBAC', href: '/dashboard/profile', icon: Settings },
+  const navSections: NavSection[] = [
+    {
+      title: 'Core',
+      items: [
+        { name: 'Dashboard Overview', href: '/dashboard', icon: LayoutDashboard },
+      ],
+    },
+    {
+      title: 'Workforce & Organization',
+      items: [
+        { name: 'Company & Structure', href: '/dashboard/company', icon: Building2, adminOnly: true },
+        { name: 'Employees Directory', href: '/dashboard/employees', icon: Briefcase },
+        { name: 'User Accounts & RBAC', href: '/dashboard/users', icon: Users, adminOnly: true },
+      ],
+    },
+    {
+      title: 'Communications',
+      items: [
+        { name: 'Newsletter & Broadcasts', href: '/dashboard/newsletter', icon: Mail, adminOnly: true },
+      ],
+    },
+    {
+      title: 'System & Security',
+      items: [
+        { name: 'CDN & Cloud Storage', href: '/dashboard/cdn', icon: Cloud, adminOnly: true },
+        { name: 'API Keys & Webhooks', href: '/dashboard/api-keys', icon: KeyRound, adminOnly: true },
+        { name: 'Security & Audit Logs', href: '/dashboard/audit', icon: ShieldAlert, adminOnly: true },
+      ],
+    },
+    {
+      title: 'Personal Workspace',
+      items: [
+        { name: 'Profile & Security', href: '/dashboard/profile', icon: UserCheck },
+      ],
+    },
   ];
 
   return (
@@ -101,122 +129,51 @@ export function Sidebar({ onNavigate }: SidebarProps) {
           </div>
         </div>
 
-        {/* Navigation Categories */}
+        {/* Categorized Navigation List */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-4">
-          {/* Main / Overview */}
-          <div>
-            <div className="space-y-0.5">
-              {overviewNav.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={onNavigate}
-                    className={`flex items-center gap-3 rounded-4xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-                      isActive
-                        ? 'bg-[#0B2E23] text-white shadow-xs'
-                        : 'text-slate-600 hover:bg-[#F3F4F6] hover:text-[#0B251A]'
-                    }`}
-                  >
-                    <Icon className={`size-4 shrink-0 ${isActive ? 'text-[#AEFF48]' : 'text-slate-500'}`} />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+          {navSections.map((section) => {
+            const visibleItems = section.items.filter(
+              (item) => !item.adminOnly || isAdmin || isSuperAdmin,
+            );
 
-          {/* Agency Governance (Admin only) */}
-          {(isAdmin || isSuperAdmin) && (
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 mb-1.5">
-                Governance
+            if (visibleItems.length === 0) return null;
+
+            return (
+              <div key={section.title} className="space-y-1">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1">
+                  {section.title}
+                </div>
+                <div className="space-y-0.5">
+                  {visibleItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive =
+                      pathname === item.href ||
+                      (item.href !== '/dashboard' && pathname.startsWith(item.href));
+
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={onNavigate}
+                        className={`flex items-center gap-3 rounded-4xl px-3.5 py-2 text-xs font-semibold transition-all ${
+                          isActive
+                            ? 'bg-[#0B2E23] text-white shadow-xs'
+                            : 'text-slate-600 hover:bg-[#F3F4F6] hover:text-[#0B251A]'
+                        }`}
+                      >
+                        <Icon
+                          className={`size-4 shrink-0 transition-colors ${
+                            isActive ? 'text-[#AEFF48]' : 'text-slate-400 group-hover:text-slate-600'
+                          }`}
+                        />
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="space-y-0.5">
-                {governanceNav.map((item) => {
-                  const Icon = item.icon;
-                  const isActive =
-                    pathname === item.href ||
-                    (item.href !== '/dashboard' && pathname.startsWith(item.href));
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={onNavigate}
-                      className={`flex items-center gap-3 rounded-4xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-                        isActive
-                          ? 'bg-[#0B2E23] text-white shadow-xs'
-                          : 'text-slate-600 hover:bg-[#F3F4F6] hover:text-[#0B251A]'
-                      }`}
-                    >
-                      <Icon className={`size-4 shrink-0 ${isActive ? 'text-[#AEFF48]' : 'text-slate-500'}`} />
-                      <span>{item.name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Operations & SDLC */}
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 mb-1.5">
-              Operations & SDLC
-            </div>
-            <div className="space-y-0.5">
-              {operationsNav.map((item) => {
-                const Icon = item.icon;
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== '/dashboard' && pathname.startsWith(item.href));
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={onNavigate}
-                    className={`flex items-center gap-3 rounded-4xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-                      isActive
-                        ? 'bg-[#0B2E23] text-white shadow-xs'
-                        : 'text-slate-600 hover:bg-[#F3F4F6] hover:text-[#0B251A]'
-                    }`}
-                  >
-                    <Icon className={`size-4 shrink-0 ${isActive ? 'text-[#AEFF48]' : 'text-slate-500'}`} />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Account */}
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 mb-1.5">
-              Account
-            </div>
-            <div className="space-y-0.5">
-              {accountNav.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={onNavigate}
-                    className={`flex items-center gap-3 rounded-4xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-                      isActive
-                        ? 'bg-[#0B2E23] text-white shadow-xs'
-                        : 'text-slate-600 hover:bg-[#F3F4F6] hover:text-[#0B251A]'
-                    }`}
-                  >
-                    <Icon className={`size-4 shrink-0 ${isActive ? 'text-[#AEFF48]' : 'text-slate-500'}`} />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+            );
+          })}
         </nav>
 
         {/* Footer / Sign Out Section */}
