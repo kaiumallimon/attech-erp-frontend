@@ -11,7 +11,6 @@ import {
   LayoutDashboard,
   Users,
   ShieldAlert,
-  FolderGit2,
   Receipt,
   UserCheck,
   Globe2,
@@ -25,11 +24,10 @@ import { Sidebar } from './sidebar';
 import GradualBlur from './ui/gradual-blur';
 
 const ROUTE_TITLES: Record<string, { title: string; subtitle?: string }> = {
-  '/dashboard': { title: 'Overview Dashboard', subtitle: 'Real-time agency operations, projects & metrics' },
+  '/dashboard': { title: 'Overview Dashboard', subtitle: 'Real-time agency operations & metrics' },
   '/dashboard/users': { title: 'Staff & Role Governance', subtitle: 'Centralized staff provisioning & RBAC assignments' },
   '/dashboard/profile': { title: 'My Profile & RBAC', subtitle: 'Identity credentials & active permissions breakdown' },
   '/dashboard/audit': { title: 'Security Audit Trail', subtitle: 'Immutable compliance logging & telemetry' },
-  '/dashboard/projects': { title: 'Projects & SDLC Sprints', subtitle: 'Engineering velocity, sprints & delivery tracking' },
   '/dashboard/finance': { title: 'Finance & Invoicing Ledger', subtitle: 'Billing accounts, revenue pipelines & statements' },
   '/dashboard/hr': { title: 'People & HR Management', subtitle: 'Staff directory, payroll & team allocation' },
   '/dashboard/portal': { title: 'Client-Facing Portal', subtitle: 'Client deliverables, review cycles & approvals' },
@@ -39,7 +37,6 @@ const SEARCH_ITEMS = [
   { id: 'overview', name: 'Overview Dashboard', href: '/dashboard', category: 'Pages', icon: LayoutDashboard, keywords: 'home stats metrics summary' },
   { id: 'users', name: 'Staff & Role Governance', href: '/dashboard/users', category: 'Pages', icon: Users, keywords: 'team members roles permissions users' },
   { id: 'audit', name: 'Security Audit Trail', href: '/dashboard/audit', category: 'Pages', icon: ShieldAlert, keywords: 'security logs compliance events' },
-  { id: 'projects', name: 'Projects & SDLC Sprints', href: '/dashboard/projects', category: 'Pages', icon: FolderGit2, keywords: 'projects tasks sprints code delivery' },
   { id: 'finance', name: 'Finance & Invoicing Ledger', href: '/dashboard/finance', category: 'Pages', icon: Receipt, keywords: 'billing revenue payments invoices' },
   { id: 'hr', name: 'People & HR Management', href: '/dashboard/hr', category: 'Pages', icon: UserCheck, keywords: 'employees leave attendance payroll' },
   { id: 'portal', name: 'Client-Facing Portal', href: '/dashboard/portal', category: 'Pages', icon: Globe2, keywords: 'client deliverables milestones review' },

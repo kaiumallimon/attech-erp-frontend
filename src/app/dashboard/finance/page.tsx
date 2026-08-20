@@ -27,7 +27,7 @@ import {
   ArrowUpRight,
   TrendingUp,
 } from 'lucide-react';
-import { invoicingApi, projectsApi, crmApi } from '@/lib/api';
+import { invoicingApi } from '@/lib/api';
 import {
   Invoice,
   InvoicingStats,
@@ -36,8 +36,6 @@ import {
   PaymentMethod,
   PaymentRecord,
 } from '@/types/invoicing';
-import { Project } from '@/types/projects';
-import { CrmClient } from '@/types/crm';
 import { HeroSelect } from '@/components/ui/hero-select';
 import { useAuth } from '@/context/auth-context';
 
@@ -92,8 +90,6 @@ export default function FinancePage() {
   // State Management
   const [stats, setStats] = useState<InvoicingStats | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [clients, setClients] = useState<CrmClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'invoices' | 'revisions' | 'installments'>('invoices');
 
@@ -113,8 +109,6 @@ export default function FinancePage() {
   const [invoiceForm, setInvoiceForm] = useState({
     type: InvoiceType.CONTRACT_MILESTONE,
     isRevision: false,
-    clientId: '',
-    projectId: '',
     clientName: '',
     clientEmail: '',
     billingAddress: '',
@@ -134,7 +128,6 @@ export default function FinancePage() {
   });
 
   const [installmentsForm, setInstallmentsForm] = useState({
-    projectId: '',
     milestones: [
       { title: 'Initial Project Deposit & Architecture Kickoff', percentage: 50, amount: 12500, dueDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0] },
       { title: 'UAT Sign-off & Final Production Handover', percentage: 50, amount: 12500, dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0] },
@@ -147,17 +140,13 @@ export default function FinancePage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [statsRes, invoicesRes, projectsRes, clientsRes] = await Promise.all([
+      const [statsRes, invoicesRes] = await Promise.all([
         invoicingApi.getStats().catch(() => null),
         invoicingApi.getInvoices({ limit: 100 }),
-        projectsApi.getProjects({ limit: 100 }).catch(() => ({ data: [] })),
-        crmApi.getClients({ limit: 100 }).catch(() => ({ data: [] })),
       ]);
 
       if (statsRes) setStats(statsRes);
       setInvoices(Array.isArray(invoicesRes.data) ? invoicesRes.data : []);
-      setProjects(Array.isArray(projectsRes.data) ? projectsRes.data : []);
-      setClients(Array.isArray(clientsRes.data) ? clientsRes.data : []);
     } catch (err) {
       console.error('Failed to load finance data:', err);
     } finally {
@@ -199,8 +188,8 @@ export default function FinancePage() {
 
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!invoiceForm.clientId) {
-      alert('Please select a client');
+    if (!invoiceForm.clientName || !invoiceForm.clientEmail) {
+      alert('Please provide client name and email');
       return;
     }
 
@@ -454,7 +443,7 @@ export default function FinancePage() {
                     <td className="p-4">
                       <strong className="text-xs text-slate-900 block truncate max-w-[200px]">{inv.clientName}</strong>
                       <span className="text-[11px] text-slate-400 truncate max-w-[200px] block">
-                        {inv.projectId?.name || inv.clientEmail}
+                        {typeof inv.projectId === 'object' ? inv.projectId?.name || inv.clientEmail : inv.clientEmail}
                       </span>
                     </td>
 
@@ -704,37 +693,41 @@ export default function FinancePage() {
             </div>
 
             <form onSubmit={handleCreateInvoice} className="space-y-4">
-              {/* Client Picker */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Client Account *</label>
-                <HeroSelect
-                  value={invoiceForm.clientId}
-                  onChange={(val) => {
-                    const c = clients.find((client) => client._id === val);
-                    setInvoiceForm({
-                      ...invoiceForm,
-                      clientId: val,
-                      clientName: c?.companyName || '',
-                      clientEmail: c?.billingEmail || c?.primaryContactEmail || '',
-                    });
-                  }}
-                  options={[
-                    { value: '', label: 'Select Client Account' },
-                    ...clients.map((c) => ({ value: c._id, label: `${c.companyName} (${c.tier})` })),
-                  ]}
-                />
+              {/* Client Info */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Client / Company Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={invoiceForm.clientName}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, clientName: e.target.value })}
+                    placeholder="e.g. Acme Corporation"
+                    className="w-full p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0B2E23]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Client Billing Email *</label>
+                  <input
+                    type="email"
+                    required
+                    value={invoiceForm.clientEmail}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, clientEmail: e.target.value })}
+                    placeholder="e.g. billing@acme.com"
+                    className="w-full p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0B2E23]"
+                  />
+                </div>
               </div>
 
-              {/* Linked Project */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Linked Project (Optional)</label>
-                <HeroSelect
-                  value={invoiceForm.projectId}
-                  onChange={(val) => setInvoiceForm({ ...invoiceForm, projectId: val })}
-                  options={[
-                    { value: '', label: 'None / General Retainer' },
-                    ...projects.map((p) => ({ value: p._id, label: `${p.code} - ${p.name}` })),
-                  ]}
+                <label className="text-xs font-bold text-slate-700">Billing Address (Optional)</label>
+                <input
+                  type="text"
+                  value={invoiceForm.billingAddress}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, billingAddress: e.target.value })}
+                  placeholder="e.g. 100 Innovation Way, Suite 400, Austin, TX"
+                  className="w-full p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0B2E23]"
                 />
               </div>
 

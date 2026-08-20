@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import {
   Users,
-  FolderGit2,
+  Code2,
   Receipt,
   ShieldCheck,
   Activity,
@@ -107,7 +107,7 @@ export default function DashboardOverviewPage() {
             </div>
           </div>
 
-          {/* QuickStat Grid */}
+            {/* QuickStat Grid */}
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 pt-6 border-t border-[#E5E7EB]/60">
             <QuickStat
               icon={Users}
@@ -115,13 +115,6 @@ export default function DashboardOverviewPage() {
               value={isAdmin ? '21 Roles' : 'Active'}
               color="text-blue-600"
               bgColor="bg-blue-50"
-            />
-            <QuickStat
-              icon={FolderGit2}
-              label="SDLC Projects"
-              value="14 Active"
-              color="text-violet-600"
-              bgColor="bg-violet-50"
             />
             <QuickStat
               icon={Receipt}
@@ -145,6 +138,13 @@ export default function DashboardOverviewPage() {
               bgColor="bg-rose-50"
             />
             <QuickStat
+              icon={Layers}
+              label="Media & CDN"
+              value="Multi-Region"
+              color="text-violet-600"
+              bgColor="bg-violet-50"
+            />
+            <QuickStat
               icon={Zap}
               label="Atlas DB Uptime"
               value="99.9%"
@@ -157,37 +157,78 @@ export default function DashboardOverviewPage() {
 
       {/* Operations Grid (Matching Aven Layout) */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left 2 Columns: Project & Sprint Delivery Pipeline */}
+        {/* Left 2 Columns: Financial & Communications Hub */}
         <div className="min-w-0 rounded-4xl border border-[#E5E7EB] bg-white p-6 shadow-xs lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-base font-bold text-[#111111]">Delivery & SDLC Pipeline</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Active agency project stages</p>
+              <h2 className="text-base font-bold text-[#111111]">Enterprise Operations Hub</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Agency core modules and active operational workflows</p>
             </div>
             <Link
-              href="/dashboard/projects"
+              href="/dashboard/finance"
               className="text-xs text-[#0B2E23] font-bold hover:underline flex items-center gap-1"
             >
-              <span>View all projects</span>
+              <span>Finance Center</span>
               <ArrowRight className="size-3" />
             </Link>
           </div>
 
-          <div className="space-y-4">
-            {stages.map((stage) => (
-              <div key={stage.label} className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-700">{stage.label}</span>
-                  <span className="font-bold text-[#0B251A]">{stage.count} projects</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Link
+              href="/dashboard/finance"
+              className="p-4 rounded-3xl border border-[#E5E7EB] bg-[#FAF7F2]/50 hover:bg-[#FAF7F2] transition-all space-y-2 group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="size-8 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
+                  <Receipt className="size-4" />
                 </div>
-                <div className="h-2 w-full bg-[#F3F4F6] rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${stage.percent}%`, backgroundColor: stage.color }}
-                  />
-                </div>
+                <ArrowRight className="size-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
               </div>
-            ))}
+              <p className="text-xs font-bold text-[#111111]">Invoicing & Ledger</p>
+              <p className="text-[11px] text-slate-500">Autonomous invoicing, payment recording, and financial tracking.</p>
+            </Link>
+
+            <Link
+              href="/dashboard/newsletter"
+              className="p-4 rounded-3xl border border-[#E5E7EB] bg-[#FAF7F2]/50 hover:bg-[#FAF7F2] transition-all space-y-2 group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="size-8 rounded-2xl bg-indigo-100 text-indigo-800 flex items-center justify-center font-bold text-xs">
+                  <Sparkles className="size-4" />
+                </div>
+                <ArrowRight className="size-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+              <p className="text-xs font-bold text-[#111111]">Newsletter & Broadcasts</p>
+              <p className="text-[11px] text-slate-500">Rich HTML newsletter composer and automated stakeholder communications.</p>
+            </Link>
+
+            <Link
+              href="/dashboard/cdn"
+              className="p-4 rounded-3xl border border-[#E5E7EB] bg-[#FAF7F2]/50 hover:bg-[#FAF7F2] transition-all space-y-2 group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="size-8 rounded-2xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-xs">
+                  <Layers className="size-4" />
+                </div>
+                <ArrowRight className="size-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+              <p className="text-xs font-bold text-[#111111]">CDN & Media Storage</p>
+              <p className="text-[11px] text-slate-500">Cloudinary asset management and high-throughput asset delivery.</p>
+            </Link>
+
+            <Link
+              href="/dashboard/users"
+              className="p-4 rounded-3xl border border-[#E5E7EB] bg-[#FAF7F2]/50 hover:bg-[#FAF7F2] transition-all space-y-2 group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="size-8 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs">
+                  <Users className="size-4" />
+                </div>
+                <ArrowRight className="size-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+              <p className="text-xs font-bold text-[#111111]">Staff Governance & RBAC</p>
+              <p className="text-[11px] text-slate-500">Role assignments, access matrix, and agency personnel management.</p>
+            </Link>
           </div>
         </div>
 
@@ -215,7 +256,7 @@ export default function DashboardOverviewPage() {
             <div className="p-3 bg-[#F9FAFB] rounded-2xl border border-[#E5E7EB] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-violet-50 text-violet-600">
-                  <FolderGit2 className="size-4" />
+                  <Code2 className="size-4" />
                 </div>
                 <div>
                   <p className="text-xs font-bold text-[#111111]">Engineering & QA</p>

@@ -12,7 +12,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'AtTech Solutions | Agency Operations & ERP Monolith',
-  description: 'Enterprise Resource Planning, CRM, SDLC & Client Portal for AtTech Solutions',
+  description: 'Enterprise Resource Planning & Operations Monolith for AtTech Solutions',
   icons: {
     icon: '/images/icons/brand-logo.svg',
   },

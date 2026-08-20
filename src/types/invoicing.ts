@@ -57,22 +57,22 @@ export interface Invoice {
   revisionNumber?: string;
   installmentNumber?: number;
   totalInstallments?: number;
-  clientId: {
+  clientId?: {
     _id: string;
-    companyName: string;
-    tier: string;
+    companyName?: string;
+    tier?: string;
     primaryContactName?: string;
     billingEmail?: string;
-  };
+  } | string;
   projectId?: {
     _id: string;
-    name: string;
-    code: string;
-    type: string;
-    status: string;
-    contractAmount: number;
-    revisionTotalAmount: number;
-  };
+    name?: string;
+    code?: string;
+    type?: string;
+    status?: string;
+    contractAmount?: number;
+    revisionTotalAmount?: number;
+  } | string;
   clientName: string;
   clientEmail: string;
   billingAddress?: string;
