@@ -13,7 +13,6 @@ import {
   Cloud,
   FileText,
   Flame,
-  FolderTree,
   KeyRound,
   LayoutDashboard,
   LogOut,
@@ -158,18 +157,6 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     }));
   };
 
-  const expandAll = () => {
-    const all: Record<string, boolean> = {};
-    treeBranches.forEach((b) => (all[b.id] = true));
-    setExpandedBranches(all);
-  };
-
-  const collapseAll = () => {
-    const none: Record<string, boolean> = {};
-    treeBranches.forEach((b) => (none[b.id] = false));
-    setExpandedBranches(none);
-  };
-
   return (
     <>
       <aside className="flex h-full w-64 flex-col rounded-4xl border border-[#E5E7EB] bg-white shadow-xs select-none overflow-hidden">
@@ -211,35 +198,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
           </div>
         </div>
 
-        {/* Tree Header Controls */}
-        <div className="px-4 pt-3 pb-1 shrink-0 flex items-center justify-between text-[10px] font-bold text-slate-400">
-          <span className="flex items-center gap-1.5">
-            <FolderTree className="size-3 text-slate-500" />
-            <span>NAVIGATION TREE</span>
-          </span>
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={expandAll}
-              className="hover:text-slate-700 cursor-pointer transition-colors"
-              title="Expand All Branches"
-            >
-              Expand
-            </button>
-            <span>•</span>
-            <button
-              type="button"
-              onClick={collapseAll}
-              className="hover:text-slate-700 cursor-pointer transition-colors"
-              title="Collapse All Branches"
-            >
-              Collapse
-            </button>
-          </div>
-        </div>
-
         {/* Tree Structured Navigation List */}
-        <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-2 custom-scrollbar">
+        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-2 custom-scrollbar">
           {treeBranches.map((branch) => {
             const visibleChildren = branch.children.filter(
               (item) => !item.adminOnly || isAdmin || isSuperAdmin,
@@ -252,6 +212,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
 
             const isBranchActive = visibleChildren.some((child) => {
               if (child.href === '/dashboard') return pathname === '/dashboard';
+              if (child.href === '/dashboard/crm') return pathname === '/dashboard/crm';
               return pathname === child.href || pathname.startsWith(`${child.href}/`);
             });
 
@@ -296,6 +257,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                       const isItemActive =
                         item.href === '/dashboard'
                           ? pathname === '/dashboard'
+                          : item.href === '/dashboard/crm'
+                          ? pathname === '/dashboard/crm'
                           : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
                       const isLast = index === visibleChildren.length - 1;
