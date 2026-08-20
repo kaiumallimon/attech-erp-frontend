@@ -1,29 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard,
-  Users,
-  Building2,
-  ShieldAlert,
-  FolderGit2,
-  Receipt,
-  UserCheck,
-  Globe2,
-  Settings,
-  LogOut,
-  Sparkles,
-  Cloud,
-  KeyRound,
-  Mail,
-  Briefcase,
-  Target,
-  Flame,
-  CheckCircle2,
-  FileText,
   BarChart3,
+  Briefcase,
+  Building2,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Cloud,
+  FileText,
+  Flame,
+  FolderTree,
+  KeyRound,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  ShieldAlert,
+  Sparkles,
+  Target,
+  UserCheck,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '../context/auth-context';
 import AtTechLogo from './ui/attech-logo';
@@ -32,16 +31,21 @@ interface SidebarProps {
   onNavigate?: () => void;
 }
 
-interface NavItem {
+interface TreeChildItem {
   name: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   adminOnly?: boolean;
+  badge?: string;
 }
 
-interface NavSection {
+interface TreeBranch {
+  id: string;
   title: string;
-  items: NavItem[];
+  icon: React.ComponentType<{ className?: string }>;
+  adminOnly?: boolean;
+  defaultHref?: string;
+  children: TreeChildItem[];
 }
 
 export function Sidebar({ onNavigate }: SidebarProps) {
@@ -52,56 +56,119 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   const initials = `${user?.firstName?.[0] || 'U'}${user?.lastName?.[0] || 'A'}`.toUpperCase();
   const fullName = user ? `${user.firstName} ${user.lastName}` : 'Team Member';
 
-  const navSections: NavSection[] = [
-    {
-      title: 'Core',
-      items: [
-        { name: 'Dashboard Overview', href: '/dashboard', icon: LayoutDashboard },
-      ],
-    },
-    {
-      title: 'CRM',
-      items: [
-        { name: 'Dashboard', href: '/dashboard/crm', icon: LayoutDashboard },
-        { name: 'Leads', href: '/dashboard/crm/leads', icon: Flame },
-        { name: 'Accounts', href: '/dashboard/crm/accounts', icon: Building2 },
-        { name: 'Contacts', href: '/dashboard/crm/contacts', icon: Users },
-        { name: 'Deals', href: '/dashboard/crm/deals', icon: Target },
-        { name: 'Activities', href: '/dashboard/crm/activities', icon: CheckCircle2 },
-        { name: 'Proposals', href: '/dashboard/crm/proposals', icon: FileText },
-        { name: 'Reports', href: '/dashboard/crm/reports', icon: BarChart3 },
-        { name: 'Settings', href: '/dashboard/crm/settings', icon: Settings },
-      ],
-    },
-    {
-      title: 'Workforce & Organization',
-      items: [
-        { name: 'Company & Structure', href: '/dashboard/company', icon: Building2, adminOnly: true },
-        { name: 'Employees Directory', href: '/dashboard/employees', icon: Briefcase },
-        { name: 'User Accounts & RBAC', href: '/dashboard/users', icon: Users, adminOnly: true },
-      ],
-    },
-    {
-      title: 'Communications',
-      items: [
-        { name: 'Newsletter & Broadcasts', href: '/dashboard/newsletter', icon: Mail, adminOnly: true },
-      ],
-    },
-    {
-      title: 'System & Security',
-      items: [
-        { name: 'CDN & Cloud Storage', href: '/dashboard/cdn', icon: Cloud, adminOnly: true },
-        { name: 'API Keys & Webhooks', href: '/dashboard/api-keys', icon: KeyRound, adminOnly: true },
-        { name: 'Security & Audit Logs', href: '/dashboard/audit', icon: ShieldAlert, adminOnly: true },
-      ],
-    },
-    {
-      title: 'Personal Workspace',
-      items: [
-        { name: 'Profile & Security', href: '/dashboard/profile', icon: UserCheck },
-      ],
-    },
-  ];
+  // Define Tree Structure
+  const treeBranches: TreeBranch[] = useMemo(
+    () => [
+      {
+        id: 'core',
+        title: 'Core Engine',
+        icon: LayoutDashboard,
+        defaultHref: '/dashboard',
+        children: [
+          { name: 'Dashboard Overview', href: '/dashboard', icon: LayoutDashboard },
+        ],
+      },
+      {
+        id: 'crm',
+        title: 'CRM & Sales Pipeline',
+        icon: Target,
+        defaultHref: '/dashboard/crm',
+        children: [
+          { name: 'Executive Dashboard', href: '/dashboard/crm', icon: LayoutDashboard },
+          { name: 'Leads & Prospects', href: '/dashboard/crm/leads', icon: Flame },
+          { name: 'Client Accounts', href: '/dashboard/crm/accounts', icon: Building2 },
+          { name: 'Stakeholder Contacts', href: '/dashboard/crm/contacts', icon: Users },
+          { name: 'Deals & Pipeline Board', href: '/dashboard/crm/deals', icon: Target },
+          { name: 'Activities & Tasks', href: '/dashboard/crm/activities', icon: CheckCircle2 },
+          { name: 'Quotation Proposals', href: '/dashboard/crm/proposals', icon: FileText },
+          { name: 'Sales Reports & Funnel', href: '/dashboard/crm/reports', icon: BarChart3 },
+          { name: 'CRM Settings', href: '/dashboard/crm/settings', icon: Target },
+        ],
+      },
+      {
+        id: 'workforce',
+        title: 'Workforce & Org',
+        icon: Briefcase,
+        children: [
+          { name: 'Company & Structure', href: '/dashboard/company', icon: Building2, adminOnly: true },
+          { name: 'Employees Directory', href: '/dashboard/employees', icon: Briefcase },
+          { name: 'User Accounts & RBAC', href: '/dashboard/users', icon: Users, adminOnly: true },
+        ],
+      },
+      {
+        id: 'communications',
+        title: 'Communications',
+        icon: Mail,
+        children: [
+          { name: 'Newsletter & Broadcasts', href: '/dashboard/newsletter', icon: Mail, adminOnly: true },
+        ],
+      },
+      {
+        id: 'system',
+        title: 'System & Security',
+        icon: ShieldAlert,
+        children: [
+          { name: 'CDN & Cloud Storage', href: '/dashboard/cdn', icon: Cloud, adminOnly: true },
+          { name: 'API Keys & Webhooks', href: '/dashboard/api-keys', icon: KeyRound, adminOnly: true },
+          { name: 'Security & Audit Logs', href: '/dashboard/audit', icon: ShieldAlert, adminOnly: true },
+        ],
+      },
+      {
+        id: 'workspace',
+        title: 'Personal Workspace',
+        icon: UserCheck,
+        children: [
+          { name: 'Profile & Security', href: '/dashboard/profile', icon: UserCheck },
+        ],
+      },
+    ],
+    [],
+  );
+
+  // Initialize expanded branches based on current pathname
+  const [expandedBranches, setExpandedBranches] = useState<Record<string, boolean>>(() => {
+    const initialState: Record<string, boolean> = {
+      core: true,
+      crm: true,
+      workforce: true,
+      communications: true,
+      system: true,
+      workspace: true,
+    };
+    return initialState;
+  });
+
+  // Auto-expand active branch when route changes
+  useEffect(() => {
+    treeBranches.forEach((branch) => {
+      const hasActiveChild = branch.children.some((child) => {
+        if (child.href === '/dashboard') return pathname === '/dashboard';
+        return pathname === child.href || pathname.startsWith(`${child.href}/`);
+      });
+      if (hasActiveChild) {
+        setExpandedBranches((prev) => ({ ...prev, [branch.id]: true }));
+      }
+    });
+  }, [pathname, treeBranches]);
+
+  const toggleBranch = (branchId: string) => {
+    setExpandedBranches((prev) => ({
+      ...prev,
+      [branchId]: !prev[branchId],
+    }));
+  };
+
+  const expandAll = () => {
+    const all: Record<string, boolean> = {};
+    treeBranches.forEach((b) => (all[b.id] = true));
+    setExpandedBranches(all);
+  };
+
+  const collapseAll = () => {
+    const none: Record<string, boolean> = {};
+    treeBranches.forEach((b) => (none[b.id] = false));
+    setExpandedBranches(none);
+  };
 
   return (
     <>
@@ -122,11 +189,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             <div className="relative">
               <div className="flex size-9 shrink-0 items-center justify-center rounded-full overflow-hidden bg-[#0B2E23] text-xs font-bold text-[#AEFF48] shadow-xs">
                 {user?.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={fullName}
-                    className="size-full object-cover"
-                  />
+                  <img src={user.avatar} alt={fullName} className="size-full object-cover" />
                 ) : (
                   <span>{initials}</span>
                 )}
@@ -148,48 +211,130 @@ export function Sidebar({ onNavigate }: SidebarProps) {
           </div>
         </div>
 
-        {/* Categorized Navigation List */}
-        <nav className="flex-1 overflow-y-auto p-3 space-y-4">
-          {navSections.map((section) => {
-            const visibleItems = section.items.filter(
+        {/* Tree Header Controls */}
+        <div className="px-4 pt-3 pb-1 shrink-0 flex items-center justify-between text-[10px] font-bold text-slate-400">
+          <span className="flex items-center gap-1.5">
+            <FolderTree className="size-3 text-slate-500" />
+            <span>NAVIGATION TREE</span>
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={expandAll}
+              className="hover:text-slate-700 cursor-pointer transition-colors"
+              title="Expand All Branches"
+            >
+              Expand
+            </button>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={collapseAll}
+              className="hover:text-slate-700 cursor-pointer transition-colors"
+              title="Collapse All Branches"
+            >
+              Collapse
+            </button>
+          </div>
+        </div>
+
+        {/* Tree Structured Navigation List */}
+        <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-2 custom-scrollbar">
+          {treeBranches.map((branch) => {
+            const visibleChildren = branch.children.filter(
               (item) => !item.adminOnly || isAdmin || isSuperAdmin,
             );
 
-            if (visibleItems.length === 0) return null;
+            if (visibleChildren.length === 0) return null;
+
+            const isExpanded = !!expandedBranches[branch.id];
+            const BranchIcon = branch.icon;
+
+            const isBranchActive = visibleChildren.some((child) => {
+              if (child.href === '/dashboard') return pathname === '/dashboard';
+              return pathname === child.href || pathname.startsWith(`${child.href}/`);
+            });
 
             return (
-              <div key={section.title} className="space-y-1">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1">
-                  {section.title}
-                </div>
-                <div className="space-y-0.5">
-                  {visibleItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive =
-                      pathname === item.href ||
-                      (item.href !== '/dashboard' && pathname.startsWith(item.href));
+              <div key={branch.id} className="space-y-1">
+                {/* Branch Header Node */}
+                <button
+                  type="button"
+                  onClick={() => toggleBranch(branch.id)}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-2xl text-xs font-bold transition-all cursor-pointer group ${
+                    isBranchActive
+                      ? 'bg-slate-100/90 text-[#0B2E23]'
+                      : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <BranchIcon
+                      className={`size-3.5 shrink-0 transition-colors ${
+                        isBranchActive ? 'text-[#0B2E23]' : 'text-slate-400 group-hover:text-slate-600'
+                      }`}
+                    />
+                    <span className="truncate text-[11.5px] tracking-tight">{branch.title}</span>
+                  </div>
 
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={onNavigate}
-                        className={`flex items-center gap-3 rounded-4xl px-3.5 py-2 text-xs font-semibold transition-all ${
-                          isActive
-                            ? 'bg-[#0B2E23] text-white shadow-xs'
-                            : 'text-slate-600 hover:bg-[#F3F4F6] hover:text-[#0B251A]'
-                        }`}
-                      >
-                        <Icon
-                          className={`size-4 shrink-0 transition-colors ${
-                            isActive ? 'text-[#AEFF48]' : 'text-slate-400 group-hover:text-slate-600'
-                          }`}
-                        />
-                        <span className="truncate">{item.name}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-1.5 py-0.2 rounded-md bg-white border border-[#E5E7EB] text-[9px] font-bold text-slate-500 shadow-2xs">
+                      {visibleChildren.length}
+                    </span>
+                    {isExpanded ? (
+                      <ChevronDown className="size-3 text-slate-400 group-hover:text-slate-600 transition-transform" />
+                    ) : (
+                      <ChevronRight className="size-3 text-slate-400 group-hover:text-slate-600 transition-transform" />
+                    )}
+                  </div>
+                </button>
+
+                {/* Branch Tree Children with Connecting Lines */}
+                {isExpanded && (
+                  <div className="relative ml-3.5 pl-3 border-l-2 border-[#ECE5DA] space-y-0.5 animate-fadeIn">
+                    {visibleChildren.map((item, index) => {
+                      const ItemIcon = item.icon;
+                      const isItemActive =
+                        item.href === '/dashboard'
+                          ? pathname === '/dashboard'
+                          : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+                      const isLast = index === visibleChildren.length - 1;
+
+                      return (
+                        <div key={item.name} className="relative">
+                          {/* Tree node connector line */}
+                          <div
+                            className={`absolute -left-3 top-3.5 w-2.5 h-[1.5px] ${
+                              isItemActive ? 'bg-[#0B2E23]' : 'bg-[#ECE5DA]'
+                            }`}
+                          />
+
+                          <Link
+                            href={item.href}
+                            onClick={onNavigate}
+                            className={`flex items-center gap-2.5 rounded-2xl px-2.5 py-1.5 text-[11px] font-semibold transition-all group ${
+                              isItemActive
+                                ? 'bg-[#0B2E23] text-white shadow-xs font-bold'
+                                : 'text-slate-600 hover:bg-[#FAF7F2] hover:text-[#0B251A]'
+                            }`}
+                          >
+                            <ItemIcon
+                              className={`size-3.5 shrink-0 transition-colors ${
+                                isItemActive
+                                  ? 'text-[#AEFF48]'
+                                  : 'text-slate-400 group-hover:text-[#0B2E23]'
+                              }`}
+                            />
+                            <span className="truncate">{item.name}</span>
+                            {isItemActive && (
+                              <span className="ml-auto size-1.5 rounded-full bg-[#AEFF48] shrink-0" />
+                            )}
+                          </Link>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -200,7 +345,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
           <button
             type="button"
             onClick={() => setShowLogoutModal(true)}
-            className="flex w-full cursor-pointer items-center gap-3 rounded-4xl px-3.5 py-2.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+            className="flex w-full cursor-pointer items-center gap-3 rounded-4xl px-3.5 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
           >
             <LogOut className="size-4 shrink-0" />
             <span>Sign out Workstation</span>
@@ -230,9 +375,9 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                   setShowLogoutModal(false);
                   await logout();
                 }}
-                className="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-4xl transition-colors shadow-xs cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-4xl transition-colors cursor-pointer shadow-xs"
               >
-                Sign Out
+                Confirm Sign Out
               </button>
             </div>
           </div>
@@ -241,5 +386,3 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     </>
   );
 }
-
-export default Sidebar;
