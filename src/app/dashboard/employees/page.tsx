@@ -510,8 +510,16 @@ export default function EmployeesWorkforcePage() {
     setIsAddEditModalOpen(true);
   };
 
-  const handleSaveEmployee = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveEmployee = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    if (wizardStep !== 4) {
+      return;
+    }
+
     if (!employeeForm.userId) {
       showToast('Please select a User account to link to this employee.', 'error');
       setWizardStep(1);
@@ -1876,7 +1884,7 @@ export default function EmployeesWorkforcePage() {
               ))}
             </div>
 
-            <form onSubmit={handleSaveEmployee} className="p-6 space-y-5 text-xs">
+            <form onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); }} className="p-6 space-y-5 text-xs">
               {/* STEP 1: USER ACCOUNT LINKAGE */}
               {wizardStep === 1 && (
                 <div className="space-y-4">
@@ -2182,18 +2190,35 @@ export default function EmployeesWorkforcePage() {
                     Cancel
                   </button>
 
-                  {wizardStep < 4 ? (
+                  {wizardStep < 4 && (
                     <button
+                      key="wizard-next-step-btn"
                       type="button"
-                      onClick={() => setWizardStep((s) => (s + 1) as any)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (wizardStep === 1 && !employeeForm.userId) {
+                          showToast('Please select a User account to link to this employee.', 'error');
+                          return;
+                        }
+                        setWizardStep((s) => (s + 1) as any);
+                      }}
                       className="h-10 px-6 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold cursor-pointer hover:bg-[#0B251A]"
                     >
                       Next Step
                     </button>
-                  ) : (
+                  )}
+
+                  {wizardStep === 4 && (
                     <button
-                      type="submit"
+                      key="wizard-complete-btn"
+                      type="button"
                       disabled={isSubmitting}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        void handleSaveEmployee(e);
+                      }}
                       className="h-10 px-6 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold cursor-pointer hover:bg-[#0B251A] disabled:opacity-50"
                     >
                       {isSubmitting ? 'Saving...' : editingEmployee ? 'Save Changes' : 'Complete Registration'}
