@@ -47,9 +47,6 @@ export function Sidebar({ onNavigate }: SidebarProps) {
 
   const operationsNav = [
     { name: 'Newsletter & Email', href: '/dashboard/newsletter', icon: Mail },
-    { name: 'Finance & Invoicing', href: '/dashboard/finance', icon: Receipt },
-    { name: 'People & HR', href: '/dashboard/hr', icon: UserCheck },
-    { name: 'Client Portal', href: '/dashboard/portal', icon: Globe2 },
   ];
 
   const accountNav = [

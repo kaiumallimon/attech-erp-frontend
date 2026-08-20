@@ -20,66 +20,6 @@ export function Shimmer({
 }
 
 export function DashboardPageSkeleton({ pathname = '/dashboard' }: { pathname?: string }) {
-  // 1. Finance & Billing Invoicing Skeleton
-  if (pathname.includes('/dashboard/finance')) {
-    return (
-      <div className="w-full space-y-6 animate-fadeIn">
-        {/* Header Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <Shimmer className="h-7 w-72 rounded-xl" />
-            <Shimmer className="h-4 w-96 rounded-lg" />
-          </div>
-          <div className="flex items-center gap-2.5">
-            <Shimmer className="h-11 w-36 rounded-full" />
-            <Shimmer className="h-11 w-44 rounded-full" />
-          </div>
-        </div>
-
-        {/* Warm Telemetry Card (5 Segments) */}
-        <Card className="bg-[#FAF7F2] border border-[#ECE5DA] rounded-4xl shadow-2xs overflow-hidden w-full">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#ECE5DA]">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="p-5 flex flex-col justify-between space-y-3">
-                <div className="flex items-center justify-between">
-                  <Shimmer className="h-3 w-20 rounded-md" />
-                  <Shimmer className="size-8 rounded-2xl" />
-                </div>
-                <div className="space-y-1.5">
-                  <Shimmer className="h-7 w-20 rounded-lg" />
-                  <Shimmer className="h-3 w-24 rounded-md" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* Invoices Table Skeleton */}
-        <Card className="bg-white border border-[#E5E7EB] rounded-4xl shadow-xs overflow-hidden">
-          <div className="p-5 border-b border-[#E5E7EB] bg-[#FAFAF9] flex items-center justify-between">
-            <Shimmer className="h-4 w-40 rounded-md" />
-            <Shimmer className="h-8 w-32 rounded-full" />
-          </div>
-          <div className="divide-y divide-[#E5E7EB]/60 p-4 space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Shimmer className="size-8 rounded-xl" />
-                  <div className="space-y-1">
-                    <Shimmer className="h-4 w-32 rounded-md" />
-                    <Shimmer className="h-3 w-48 rounded-md" />
-                  </div>
-                </div>
-                <Shimmer className="h-6 w-20 rounded-full" />
-                <Shimmer className="h-4 w-24 rounded-md" />
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
   if (pathname.includes('/dashboard/newsletter')) {
     return (
       <div className="w-full space-y-6 animate-fadeIn">

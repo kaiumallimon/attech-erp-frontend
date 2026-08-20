@@ -31,54 +31,46 @@ import { HeroSelect, SelectOption } from '../../../components/ui/hero-select';
 
 const ALL_ROLES = [
   Role.SUPER_ADMIN,
+  Role.CEO,
   Role.ADMIN,
-  Role.PROJECT_MANAGER,
-  Role.TECH_LEAD,
-  Role.SENIOR_DEVELOPER,
-  Role.DEVELOPER,
-  Role.JUNIOR_DEVELOPER,
-  Role.QA_ENGINEER,
-  Role.DEVOPS_ENGINEER,
-  Role.UI_UX_DESIGNER,
-  Role.GRAPHIC_DESIGNER,
   Role.HR_MANAGER,
-  Role.HR_EXECUTIVE,
   Role.FINANCE_MANAGER,
-  Role.ACCOUNTANT,
-  Role.SALES_EXECUTIVE,
-  Role.MARKETING_SPECIALIST,
-  Role.CLIENT_ACCOUNT_MANAGER,
+  Role.SALES_MANAGER,
+  Role.PROJECT_MANAGER,
+  Role.TEAM_LEAD,
+  Role.DEVELOPER,
+  Role.DESIGNER,
+  Role.QA_ENGINEER,
+  Role.EMPLOYEE,
   Role.CLIENT,
-  Role.INTERN,
-  Role.GUEST,
 ];
 
 const DEPARTMENTS = [
+  'Executive Leadership',
   'Engineering',
   'Design & Creative',
   'Product & Strategy',
   'Quality Assurance',
-  'DevOps & Cloud',
   'Human Resources',
   'Finance & Accounting',
   'Sales & Marketing',
-  'Client Relations',
   'Operations',
 ];
 
 const ROLE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   SUPER_ADMIN: { bg: 'bg-[#0B2E23]/10', text: 'text-[#0B251A]', border: 'border-[#0B2E23]/30' },
+  CEO: { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-300' },
   ADMIN: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-  PROJECT_MANAGER: { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
-  TECH_LEAD: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  SENIOR_DEVELOPER: { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200' },
-  DEVELOPER: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
-  QA_ENGINEER: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-  DEVOPS_ENGINEER: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-  UI_UX_DESIGNER: { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
   HR_MANAGER: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
   FINANCE_MANAGER: { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
-  CLIENT: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+  SALES_MANAGER: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+  PROJECT_MANAGER: { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
+  TEAM_LEAD: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  DEVELOPER: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  DESIGNER: { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
+  QA_ENGINEER: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  EMPLOYEE: { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-300' },
+  CLIENT: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
 };
 
 function formatRoleLabel(role: string): string {
@@ -87,7 +79,7 @@ function formatRoleLabel(role: string): string {
 
 // Prepared Select Options
 const ROLE_OPTIONS: SelectOption[] = [
-  { value: '', label: 'All Roles (21)' },
+  { value: '', label: 'All Roles (13)' },
   ...ALL_ROLES.map((r) => ({ value: r, label: formatRoleLabel(r) })),
 ];
 

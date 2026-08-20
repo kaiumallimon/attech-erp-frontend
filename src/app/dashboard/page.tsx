@@ -5,18 +5,18 @@ import Link from 'next/link';
 import {
   Users,
   Code2,
-  Receipt,
   ShieldCheck,
   Activity,
   Zap,
   ArrowRight,
-  Plus,
   UserPlus,
   Sparkles,
   Layers,
-  CheckCircle2,
-  Clock,
+  KeyRound,
+  ShieldAlert,
+  Mail,
   ExternalLink,
+  Clock,
 } from 'lucide-react';
 import { useAuth } from '../../context/auth-context';
 import { Breadcrumbs } from '../../components/breadcrumbs';
@@ -48,24 +48,16 @@ export default function DashboardOverviewPage() {
 
   const greeting = user?.firstName ? `Welcome back, ${user.firstName}!` : 'Welcome back!';
 
-  const stages = [
-    { label: 'Discovery & Spec', count: 4, color: '#3B82F6', percent: 20 },
-    { label: 'Architecture & Design', count: 6, color: '#8B5CF6', percent: 30 },
-    { label: 'Sprint In-Progress', count: 12, color: '#0B2E23', percent: 60 },
-    { label: 'QA & Review', count: 5, color: '#F59E0B', percent: 25 },
-    { label: 'Production Deployed', count: 28, color: '#10B981', percent: 100 },
-  ];
-
   const recentLogs = [
     { id: 1, action: 'AUTH_LOGIN', desc: `${user?.email || 'Admin'} signed in successfully`, time: 'Just now', icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     { id: 2, action: 'USERS_SEED', desc: 'Auto-seeded Super Admin account verified in Atlas DB', time: '10m ago', icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { id: 3, action: 'RBAC_EVAL', desc: 'Resolved 21 industry-standard agency permissions', time: '1h ago', icon: Layers, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { id: 3, action: 'RBAC_EVAL', desc: 'Resolved 13 agency-standard roles & access permissions', time: '1h ago', icon: Layers, color: 'text-blue-600', bg: 'bg-blue-50' },
     { id: 4, action: 'TOKEN_ROTATION', desc: 'Generated cryptographic 15m access + 7d refresh pair', time: '2h ago', icon: Activity, color: 'text-violet-600', bg: 'bg-violet-50' },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Hero Welcome Card matching Aven's Hero Banner */}
+      {/* Hero Welcome Card */}
       <div className="relative overflow-hidden rounded-4xl border border-[#E5E7EB] bg-gradient-to-br from-white via-white to-[#AEFF48]/10 p-6 sm:p-8 shadow-xs">
         <div className="absolute -right-20 -top-20 size-64 rounded-full bg-[#AEFF48]/15 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 size-48 rounded-full bg-[#0B251A]/5 blur-2xl pointer-events-none" />
@@ -82,7 +74,7 @@ export default function DashboardOverviewPage() {
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111111] tracking-tight">{greeting}</h1>
               <p className="mt-2 max-w-xl text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                Here&apos;s your agency operations center. Monitor client pipelines, engineering delivery, financial ledgers, and staff governance in real-time.
+                Here&apos;s your agency operations center. Oversee staff governance, security audit trails, media delivery, broadcasts, and machine access in real-time.
               </p>
             </div>
 
@@ -107,39 +99,39 @@ export default function DashboardOverviewPage() {
             </div>
           </div>
 
-            {/* QuickStat Grid */}
+          {/* QuickStat Grid */}
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 pt-6 border-t border-[#E5E7EB]/60">
             <QuickStat
               icon={Users}
               label="Agency Staff"
-              value={isAdmin ? '21 Roles' : 'Active'}
+              value={isAdmin ? '13 Roles' : 'Active'}
               color="text-blue-600"
               bgColor="bg-blue-50"
             />
             <QuickStat
-              icon={Receipt}
-              label="Monthly Ledger"
-              value="$148.5k"
-              color="text-emerald-600"
-              bgColor="bg-emerald-50"
-            />
-            <QuickStat
-              icon={ShieldCheck}
-              label="RBAC Matrix"
-              value="30+ Perms"
-              color="text-amber-600"
-              bgColor="bg-amber-50"
-            />
-            <QuickStat
-              icon={Activity}
-              label="Audit Logs"
+              icon={ShieldAlert}
+              label="Audit Trails"
               value="100% Tracked"
               color="text-rose-600"
               bgColor="bg-rose-50"
             />
             <QuickStat
+              icon={ShieldCheck}
+              label="RBAC Matrix"
+              value="13 Roles"
+              color="text-amber-600"
+              bgColor="bg-amber-50"
+            />
+            <QuickStat
+              icon={KeyRound}
+              label="Machine API Keys"
+              value="Scoped"
+              color="text-emerald-600"
+              bgColor="bg-emerald-50"
+            />
+            <QuickStat
               icon={Layers}
-              label="Media & CDN"
+              label="CDN & Storage"
               value="Multi-Region"
               color="text-violet-600"
               bgColor="bg-violet-50"
@@ -155,9 +147,9 @@ export default function DashboardOverviewPage() {
         </div>
       </div>
 
-      {/* Operations Grid (Matching Aven Layout) */}
+      {/* Operations Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left 2 Columns: Financial & Communications Hub */}
+        {/* Left 2 Columns: Core Operations Hub */}
         <div className="min-w-0 rounded-4xl border border-[#E5E7EB] bg-white p-6 shadow-xs lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -165,27 +157,27 @@ export default function DashboardOverviewPage() {
               <p className="text-xs text-slate-500 mt-0.5">Agency core modules and active operational workflows</p>
             </div>
             <Link
-              href="/dashboard/finance"
+              href="/dashboard/users"
               className="text-xs text-[#0B2E23] font-bold hover:underline flex items-center gap-1"
             >
-              <span>Finance Center</span>
+              <span>Manage Staff</span>
               <ArrowRight className="size-3" />
             </Link>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Link
-              href="/dashboard/finance"
+              href="/dashboard/users"
               className="p-4 rounded-3xl border border-[#E5E7EB] bg-[#FAF7F2]/50 hover:bg-[#FAF7F2] transition-all space-y-2 group"
             >
               <div className="flex items-center justify-between">
-                <div className="size-8 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
-                  <Receipt className="size-4" />
+                <div className="size-8 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs">
+                  <Users className="size-4" />
                 </div>
                 <ArrowRight className="size-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
               </div>
-              <p className="text-xs font-bold text-[#111111]">Invoicing & Ledger</p>
-              <p className="text-[11px] text-slate-500">Autonomous invoicing, payment recording, and financial tracking.</p>
+              <p className="text-xs font-bold text-[#111111]">Staff Governance & RBAC</p>
+              <p className="text-[11px] text-slate-500">13 role assignments, permission matrix, and agency personnel management.</p>
             </Link>
 
             <Link
@@ -194,12 +186,12 @@ export default function DashboardOverviewPage() {
             >
               <div className="flex items-center justify-between">
                 <div className="size-8 rounded-2xl bg-indigo-100 text-indigo-800 flex items-center justify-center font-bold text-xs">
-                  <Sparkles className="size-4" />
+                  <Mail className="size-4" />
                 </div>
                 <ArrowRight className="size-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
               </div>
               <p className="text-xs font-bold text-[#111111]">Newsletter & Broadcasts</p>
-              <p className="text-[11px] text-slate-500">Rich HTML newsletter composer and automated stakeholder communications.</p>
+              <p className="text-[11px] text-slate-500">Rich HTML newsletter composer, subscriber lists, and automated communications.</p>
             </Link>
 
             <Link
@@ -213,21 +205,21 @@ export default function DashboardOverviewPage() {
                 <ArrowRight className="size-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
               </div>
               <p className="text-xs font-bold text-[#111111]">CDN & Media Storage</p>
-              <p className="text-[11px] text-slate-500">Cloudinary asset management and high-throughput asset delivery.</p>
+              <p className="text-[11px] text-slate-500">Cloudinary asset management and high-throughput media delivery.</p>
             </Link>
 
             <Link
-              href="/dashboard/users"
+              href="/dashboard/api-keys"
               className="p-4 rounded-3xl border border-[#E5E7EB] bg-[#FAF7F2]/50 hover:bg-[#FAF7F2] transition-all space-y-2 group"
             >
               <div className="flex items-center justify-between">
-                <div className="size-8 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs">
-                  <Users className="size-4" />
+                <div className="size-8 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
+                  <KeyRound className="size-4" />
                 </div>
                 <ArrowRight className="size-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
               </div>
-              <p className="text-xs font-bold text-[#111111]">Staff Governance & RBAC</p>
-              <p className="text-[11px] text-slate-500">Role assignments, access matrix, and agency personnel management.</p>
+              <p className="text-xs font-bold text-[#111111]">API Keys & Access</p>
+              <p className="text-[11px] text-slate-500">Cryptographic tokens, IP allowlists, and scoped machine access.</p>
             </Link>
           </div>
         </div>
@@ -236,7 +228,7 @@ export default function DashboardOverviewPage() {
         <div className="min-w-0 rounded-4xl border border-[#E5E7EB] bg-white p-6 shadow-xs">
           <div className="mb-6">
             <h2 className="text-base font-bold text-[#111111]">Governance Overview</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Access and permissions breakdown</p>
+            <p className="text-xs text-slate-500 mt-0.5">13 roles categorized by department</p>
           </div>
 
           <div className="space-y-3">
@@ -246,8 +238,8 @@ export default function DashboardOverviewPage() {
                   <Users className="size-4" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-[#111111]">Leadership & Admin</p>
-                  <p className="text-[10px] text-slate-500">Super Admin, Admin, Ops</p>
+                  <p className="text-xs font-bold text-[#111111]">Executive & Leadership</p>
+                  <p className="text-[10px] text-slate-500">SUPER ADMIN, CEO, ADMIN</p>
                 </div>
               </div>
               <span className="text-xs font-bold text-slate-700">3 Roles</span>
@@ -259,21 +251,8 @@ export default function DashboardOverviewPage() {
                   <Code2 className="size-4" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-[#111111]">Engineering & QA</p>
-                  <p className="text-[10px] text-slate-500">Fullstack, DevOps, QA, Leads</p>
-                </div>
-              </div>
-              <span className="text-xs font-bold text-slate-700">7 Roles</span>
-            </div>
-
-            <div className="p-3 bg-[#F9FAFB] rounded-2xl border border-[#E5E7EB] flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
-                  <Receipt className="size-4" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-[#111111]">Finance & HR</p>
-                  <p className="text-[10px] text-slate-500">Accounts, Payroll, HR Execs</p>
+                  <p className="text-xs font-bold text-[#111111]">Department Managers</p>
+                  <p className="text-[10px] text-slate-500">HR, Finance, Sales, Project Mgr</p>
                 </div>
               </div>
               <span className="text-xs font-bold text-slate-700">4 Roles</span>
@@ -281,12 +260,25 @@ export default function DashboardOverviewPage() {
 
             <div className="p-3 bg-[#F9FAFB] rounded-2xl border border-[#E5E7EB] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
-                  <CheckCircle2 className="size-4" />
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                  <ShieldCheck className="size-4" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-[#111111]">Client Portal</p>
-                  <p className="text-[10px] text-slate-500">Stakeholder deliverables</p>
+                  <p className="text-xs font-bold text-[#111111]">Technical & Creative Staff</p>
+                  <p className="text-[10px] text-slate-500">Lead, Dev, Designer, QA, Employee</p>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-slate-700">5 Roles</span>
+            </div>
+
+            <div className="p-3 bg-[#F9FAFB] rounded-2xl border border-[#E5E7EB] flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+                  <Sparkles className="size-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-[#111111]">External Portal</p>
+                  <p className="text-[10px] text-slate-500">Client Stakeholder Access</p>
                 </div>
               </div>
               <span className="text-xs font-bold text-slate-700">1 Role</span>

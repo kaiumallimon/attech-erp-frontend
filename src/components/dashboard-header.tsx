@@ -26,20 +26,20 @@ import GradualBlur from './ui/gradual-blur';
 const ROUTE_TITLES: Record<string, { title: string; subtitle?: string }> = {
   '/dashboard': { title: 'Overview Dashboard', subtitle: 'Real-time agency operations & metrics' },
   '/dashboard/users': { title: 'Staff & Role Governance', subtitle: 'Centralized staff provisioning & RBAC assignments' },
+  '/dashboard/cdn': { title: 'CDN & Media Storage', subtitle: 'Cloudinary digital asset management & optimization' },
+  '/dashboard/audit': { title: 'Security Audit Trail', subtitle: 'Immutable compliance logging & security telemetry' },
+  '/dashboard/api-keys': { title: 'API Keys & Machine Access', subtitle: 'Cryptographic API keys, scopes & IP whitelisting' },
+  '/dashboard/newsletter': { title: 'Newsletter & Broadcasts', subtitle: 'HTML email campaign composer & subscriber analytics' },
   '/dashboard/profile': { title: 'My Profile & RBAC', subtitle: 'Identity credentials & active permissions breakdown' },
-  '/dashboard/audit': { title: 'Security Audit Trail', subtitle: 'Immutable compliance logging & telemetry' },
-  '/dashboard/finance': { title: 'Finance & Invoicing Ledger', subtitle: 'Billing accounts, revenue pipelines & statements' },
-  '/dashboard/hr': { title: 'People & HR Management', subtitle: 'Staff directory, payroll & team allocation' },
-  '/dashboard/portal': { title: 'Client-Facing Portal', subtitle: 'Client deliverables, review cycles & approvals' },
 };
 
 const SEARCH_ITEMS = [
   { id: 'overview', name: 'Overview Dashboard', href: '/dashboard', category: 'Pages', icon: LayoutDashboard, keywords: 'home stats metrics summary' },
   { id: 'users', name: 'Staff & Role Governance', href: '/dashboard/users', category: 'Pages', icon: Users, keywords: 'team members roles permissions users' },
+  { id: 'cdn', name: 'CDN & Media Storage', href: '/dashboard/cdn', category: 'Pages', icon: ShieldAlert, keywords: 'assets images media cloudinary storage' },
   { id: 'audit', name: 'Security Audit Trail', href: '/dashboard/audit', category: 'Pages', icon: ShieldAlert, keywords: 'security logs compliance events' },
-  { id: 'finance', name: 'Finance & Invoicing Ledger', href: '/dashboard/finance', category: 'Pages', icon: Receipt, keywords: 'billing revenue payments invoices' },
-  { id: 'hr', name: 'People & HR Management', href: '/dashboard/hr', category: 'Pages', icon: UserCheck, keywords: 'employees leave attendance payroll' },
-  { id: 'portal', name: 'Client-Facing Portal', href: '/dashboard/portal', category: 'Pages', icon: Globe2, keywords: 'client deliverables milestones review' },
+  { id: 'api-keys', name: 'API Keys & Machine Access', href: '/dashboard/api-keys', category: 'Pages', icon: Settings, keywords: 'api keys secrets tokens access' },
+  { id: 'newsletter', name: 'Newsletter & Broadcasts', href: '/dashboard/newsletter', category: 'Pages', icon: LayoutDashboard, keywords: 'newsletter email campaigns broadcasts subscribers' },
   { id: 'profile', name: 'My Profile & Permissions', href: '/dashboard/profile', category: 'Account', icon: Settings, keywords: 'profile password rbac account settings' },
 ];
 

@@ -131,8 +131,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const role = user?.role || null;
-  const isAdmin = Boolean(rbac?.isAdmin || role === Role.SUPER_ADMIN || role === Role.ADMIN);
-  const isSuperAdmin = Boolean(rbac?.isSuperAdmin || role === Role.SUPER_ADMIN);
+  const isAdmin = Boolean(rbac?.isAdmin || role === Role.SUPER_ADMIN || role === Role.CEO || role === Role.ADMIN);
+  const isSuperAdmin = Boolean(rbac?.isSuperAdmin || role === Role.SUPER_ADMIN || role === Role.CEO);
   const isAuthenticated = Boolean(user && getStoredAccessToken());
 
   return (
