@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Users,
+  Building2,
   ShieldAlert,
   FolderGit2,
   Receipt,
@@ -39,6 +40,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   ];
 
   const governanceNav = [
+    { name: 'Company & Org', href: '/dashboard/company', icon: Building2 },
     { name: 'Users', href: '/dashboard/users', icon: Users },
     { name: 'CDN & Storage', href: '/dashboard/cdn', icon: Cloud },
     { name: 'Security & Audit', href: '/dashboard/audit', icon: ShieldAlert },

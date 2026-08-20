@@ -793,4 +793,271 @@ export const newsletterApi = {
   },
 };
 
+// ============================================================================
+// COMPANY & ORGANIZATION API
+// ============================================================================
+
+import type {
+  Company,
+  Department,
+  Team,
+  Position,
+  Level,
+  Location,
+  OrgChartTree,
+  CompanyStats,
+} from '../types/company';
+
+export const companyApi = {
+  getProfile: async () => {
+    const res = await apiClient<Company>('/company');
+    return res.data;
+  },
+
+  updateProfile: async (payload: Partial<Company>) => {
+    const res = await apiClient<Company>('/company', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    return res;
+  },
+
+  getStats: async (companyId?: string) => {
+    const qs = companyId ? `?companyId=${companyId}` : '';
+    const res = await apiClient<CompanyStats>(`/company/stats${qs}`);
+    return res.data;
+  },
+
+  getOrgChart: async (companyId?: string) => {
+    const qs = companyId ? `?companyId=${companyId}` : '';
+    const res = await apiClient<OrgChartTree>(`/company/org-chart${qs}`);
+    return res.data;
+  },
+};
+
+export const orgApi = {
+  // Departments
+  listDepartments: async (params?: { search?: string; status?: string; companyId?: string }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.status && params.status !== 'all') searchParams.set('status', params.status);
+    if (params?.companyId) searchParams.set('companyId', params.companyId);
+    const qs = searchParams.toString();
+    const res = await apiClient<Department[]>(`/org/departments${qs ? `?${qs}` : ''}`);
+    return res.data || [];
+  },
+
+  getDepartment: async (id: string) => {
+    const res = await apiClient<Department>(`/org/departments/${id}`);
+    return res.data;
+  },
+
+  createDepartment: async (payload: Partial<Department>) => {
+    const res = await apiClient<Department>('/org/departments', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res;
+  },
+
+  updateDepartment: async (id: string, payload: Partial<Department>) => {
+    const res = await apiClient<Department>(`/org/departments/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    return res;
+  },
+
+  deleteDepartment: async (id: string) => {
+    const res = await apiClient<{ success: boolean; message: string }>(`/org/departments/${id}`, {
+      method: 'DELETE',
+    });
+    return res;
+  },
+
+  toggleDepartmentStatus: async (id: string) => {
+    const res = await apiClient<Department>(`/org/departments/${id}/toggle-status`, {
+      method: 'PATCH',
+    });
+    return res;
+  },
+
+  // Teams
+  listTeams: async (params?: { departmentId?: string; search?: string; status?: string; companyId?: string }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.departmentId && params.departmentId !== 'all') searchParams.set('departmentId', params.departmentId);
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.status && params.status !== 'all') searchParams.set('status', params.status);
+    if (params?.companyId) searchParams.set('companyId', params.companyId);
+    const qs = searchParams.toString();
+    const res = await apiClient<Team[]>(`/org/teams${qs ? `?${qs}` : ''}`);
+    return res.data || [];
+  },
+
+  getTeam: async (id: string) => {
+    const res = await apiClient<Team>(`/org/teams/${id}`);
+    return res.data;
+  },
+
+  createTeam: async (payload: Partial<Team>) => {
+    const res = await apiClient<Team>('/org/teams', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res;
+  },
+
+  updateTeam: async (id: string, payload: Partial<Team>) => {
+    const res = await apiClient<Team>(`/org/teams/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    return res;
+  },
+
+  deleteTeam: async (id: string) => {
+    const res = await apiClient<{ success: boolean; message: string }>(`/org/teams/${id}`, {
+      method: 'DELETE',
+    });
+    return res;
+  },
+
+  toggleTeamStatus: async (id: string) => {
+    const res = await apiClient<Team>(`/org/teams/${id}/toggle-status`, {
+      method: 'PATCH',
+    });
+    return res;
+  },
+
+  // Positions
+  listPositions: async (params?: { departmentId?: string; levelId?: string; search?: string; status?: string; companyId?: string }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.departmentId && params.departmentId !== 'all') searchParams.set('departmentId', params.departmentId);
+    if (params?.levelId && params.levelId !== 'all') searchParams.set('levelId', params.levelId);
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.status && params.status !== 'all') searchParams.set('status', params.status);
+    if (params?.companyId) searchParams.set('companyId', params.companyId);
+    const qs = searchParams.toString();
+    const res = await apiClient<Position[]>(`/org/positions${qs ? `?${qs}` : ''}`);
+    return res.data || [];
+  },
+
+  createPosition: async (payload: Partial<Position>) => {
+    const res = await apiClient<Position>('/org/positions', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res;
+  },
+
+  updatePosition: async (id: string, payload: Partial<Position>) => {
+    const res = await apiClient<Position>(`/org/positions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    return res;
+  },
+
+  deletePosition: async (id: string) => {
+    const res = await apiClient<{ success: boolean; message: string }>(`/org/positions/${id}`, {
+      method: 'DELETE',
+    });
+    return res;
+  },
+
+  togglePositionStatus: async (id: string) => {
+    const res = await apiClient<Position>(`/org/positions/${id}/toggle-status`, {
+      method: 'PATCH',
+    });
+    return res;
+  },
+
+  // Levels
+  listLevels: async (companyId?: string) => {
+    const qs = companyId ? `?companyId=${companyId}` : '';
+    const res = await apiClient<Level[]>(`/org/levels${qs}`);
+    return res.data || [];
+  },
+
+  createLevel: async (payload: Partial<Level>) => {
+    const res = await apiClient<Level>('/org/levels', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res;
+  },
+
+  updateLevel: async (id: string, payload: Partial<Level>) => {
+    const res = await apiClient<Level>(`/org/levels/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    return res;
+  },
+
+  reorderLevels: async (levels: { id: string; rank: number }[]) => {
+    const res = await apiClient<Level[]>('/org/levels/reorder', {
+      method: 'PUT',
+      body: JSON.stringify({ levels }),
+    });
+    return res;
+  },
+
+  deleteLevel: async (id: string) => {
+    const res = await apiClient<{ success: boolean; message: string }>(`/org/levels/${id}`, {
+      method: 'DELETE',
+    });
+    return res;
+  },
+
+  toggleLevelStatus: async (id: string) => {
+    const res = await apiClient<Level>(`/org/levels/${id}/toggle-status`, {
+      method: 'PATCH',
+    });
+    return res;
+  },
+
+  // Locations
+  listLocations: async (params?: { search?: string; status?: string; companyId?: string }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.status && params.status !== 'all') searchParams.set('status', params.status);
+    if (params?.companyId) searchParams.set('companyId', params.companyId);
+    const qs = searchParams.toString();
+    const res = await apiClient<Location[]>(`/org/locations${qs ? `?${qs}` : ''}`);
+    return res.data || [];
+  },
+
+  createLocation: async (payload: Partial<Location>) => {
+    const res = await apiClient<Location>('/org/locations', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res;
+  },
+
+  updateLocation: async (id: string, payload: Partial<Location>) => {
+    const res = await apiClient<Location>(`/org/locations/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    return res;
+  },
+
+  deleteLocation: async (id: string) => {
+    const res = await apiClient<{ success: boolean; message: string }>(`/org/locations/${id}`, {
+      method: 'DELETE',
+    });
+    return res;
+  },
+
+  toggleLocationStatus: async (id: string) => {
+    const res = await apiClient<Location>(`/org/locations/${id}/toggle-status`, {
+      method: 'PATCH',
+    });
+    return res;
+  },
+};
+
+
 

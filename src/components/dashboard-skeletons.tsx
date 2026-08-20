@@ -90,6 +90,60 @@ export function DashboardPageSkeleton({ pathname = '/dashboard' }: { pathname?: 
     );
   }
 
+  // Company & Organization Skeleton (/dashboard/company)
+  if (pathname.includes('/dashboard/company')) {
+    return (
+      <div className="w-full space-y-6 animate-fadeIn">
+        {/* Header Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <Shimmer className="h-7 w-64 rounded-xl" />
+            <Shimmer className="h-4 w-96 rounded-lg" />
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Shimmer className="h-11 w-32 rounded-full" />
+            <Shimmer className="h-11 w-44 rounded-full" />
+          </div>
+        </div>
+
+        {/* Telemetry Card (5 Segments) */}
+        <Card className="bg-[#FAF7F2] border border-[#ECE5DA] rounded-4xl shadow-2xs overflow-hidden w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#ECE5DA]">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="p-5 flex flex-col justify-between space-y-3">
+                <div className="flex items-center justify-between">
+                  <Shimmer className="h-3 w-20 rounded-md" />
+                  <Shimmer className="size-8 rounded-2xl" />
+                </div>
+                <div className="space-y-1.5 pt-2">
+                  <Shimmer className="h-7 w-16 rounded-lg" />
+                  <Shimmer className="h-3 w-28 rounded-md" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Tab Pills */}
+        <div className="flex items-center gap-2 p-1.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full w-fit">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Shimmer key={i} className="h-9 w-24 rounded-full" />
+          ))}
+        </div>
+
+        {/* Main Content Card */}
+        <Card className="bg-white border border-[#E5E7EB] rounded-4xl shadow-xs p-6 space-y-4">
+          <Shimmer className="h-11 w-full rounded-2xl" />
+          <div className="space-y-3 pt-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Shimmer key={i} className="h-14 w-full rounded-2xl" />
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   // 2. User Accounts Management Skeleton (/dashboard/users)
   if (pathname.includes('/dashboard/users')) {
     return (
