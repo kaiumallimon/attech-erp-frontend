@@ -177,29 +177,35 @@ export default function CompanyOrganizationPage() {
         chartData,
         userRes,
       ] = await Promise.all([
-        companyApi.getProfile(),
-        companyApi.getStats(),
-        orgApi.listDepartments(),
-        orgApi.listTeams(),
-        orgApi.listPositions(),
-        orgApi.listLevels(),
-        orgApi.listLocations(),
-        companyApi.getOrgChart(),
+        companyApi.getProfile().catch(() => null),
+        companyApi.getStats().catch(() => null),
+        orgApi.listDepartments().catch(() => []),
+        orgApi.listTeams().catch(() => []),
+        orgApi.listPositions().catch(() => []),
+        orgApi.listLevels().catch(() => []),
+        orgApi.listLocations().catch(() => []),
+        companyApi.getOrgChart().catch(() => null),
         usersApi.getAll({ limit: 100 }).catch(() => ({ data: [] })),
       ]);
 
       if (companyData) {
-        setCompany(companyData);
-        setProfileForm(companyData);
+        const rawComp = (companyData as any)?.data ?? companyData;
+        setCompany(rawComp);
+        setProfileForm(rawComp);
       }
       setStats(statsData || null);
-      setDepartments(deptData || []);
-      setTeams(teamData || []);
-      setPositions(posData || []);
-      setLevels(levelData || []);
-      setLocations(locData || []);
+      setDepartments(Array.isArray(deptData) ? deptData : []);
+      setTeams(Array.isArray(teamData) ? teamData : []);
+      setPositions(Array.isArray(posData) ? posData : []);
+      setLevels(Array.isArray(levelData) ? levelData : []);
+      setLocations(Array.isArray(locData) ? locData : []);
       setOrgChart(chartData || null);
-      setUsersList((userRes as any).data || []);
+      const extractedUsers = Array.isArray((userRes as any)?.data)
+        ? (userRes as any).data
+        : Array.isArray(userRes)
+        ? userRes
+        : [];
+      setUsersList(extractedUsers);
     } catch (err: any) {
       showToast(err.message || 'Failed to load company organization data.', 'error');
     } finally {
@@ -219,9 +225,34 @@ export default function CompanyOrganizationPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await companyApi.updateProfile(profileForm);
-      if (res.data) {
-        setCompany(res.data);
+      const cleanPayload: Partial<Company> = {
+        name: profileForm.name,
+        legalName: profileForm.legalName,
+        logo: profileForm.logo,
+        shortDescription: profileForm.shortDescription,
+        industry: profileForm.industry,
+        website: profileForm.website,
+        email: profileForm.email,
+        phone: profileForm.phone,
+        address: profileForm.address,
+        city: profileForm.city,
+        state: profileForm.state,
+        country: profileForm.country,
+        postalCode: profileForm.postalCode,
+        timezone: profileForm.timezone,
+        currency: profileForm.currency,
+        fiscalYear: profileForm.fiscalYear,
+        taxId: profileForm.taxId,
+        vatNumber: profileForm.vatNumber,
+        registrationNumber: profileForm.registrationNumber,
+        status: profileForm.status,
+      };
+
+      const res = await companyApi.updateProfile(cleanPayload);
+      const updated = (res as any)?.data ?? res;
+      if (updated) {
+        setCompany(updated);
+        setProfileForm(updated);
       }
       setIsProfileSaved(true);
       showToast('Company business profile updated successfully.');
@@ -592,9 +623,16 @@ export default function CompanyOrganizationPage() {
   };
 
   // Helpers for Dropdown Selects
+  const safeUsersList = Array.isArray(usersList) ? usersList : [];
+  const safeDepartments = Array.isArray(departments) ? departments : [];
+  const safeTeams = Array.isArray(teams) ? teams : [];
+  const safePositions = Array.isArray(positions) ? positions : [];
+  const safeLevels = Array.isArray(levels) ? levels : [];
+  const safeLocations = Array.isArray(locations) ? locations : [];
+
   const userSelectOptions: SelectOption[] = [
     { value: '', label: 'Unassigned / None' },
-    ...usersList.map((u) => ({
+    ...safeUsersList.map((u) => ({
       value: u.id || (u as any)._id || '',
       label: `${u.firstName} ${u.lastName} (${u.email})`,
     })),
@@ -602,7 +640,7 @@ export default function CompanyOrganizationPage() {
 
   const deptSelectOptions: SelectOption[] = [
     { value: '', label: 'Select Department' },
-    ...departments.map((d) => ({
+    ...safeDepartments.map((d) => ({
       value: d.id || (d as any)._id,
       label: `${d.name} (${d.code})`,
     })),
@@ -610,7 +648,7 @@ export default function CompanyOrganizationPage() {
 
   const deptFilterOptions: SelectOption[] = [
     { value: 'all', label: 'All Departments' },
-    ...departments.map((d) => ({
+    ...safeDepartments.map((d) => ({
       value: d.id || (d as any)._id,
       label: d.name,
     })),
@@ -618,7 +656,7 @@ export default function CompanyOrganizationPage() {
 
   const levelSelectOptions: SelectOption[] = [
     { value: '', label: 'Select Level' },
-    ...levels.map((l) => ({
+    ...safeLevels.map((l) => ({
       value: l.id || (l as any)._id,
       label: `${l.name} (${l.code} - Rank ${l.rank})`,
     })),
@@ -626,14 +664,14 @@ export default function CompanyOrganizationPage() {
 
   const levelFilterOptions: SelectOption[] = [
     { value: 'all', label: 'All Levels' },
-    ...levels.map((l) => ({
+    ...safeLevels.map((l) => ({
       value: l.id || (l as any)._id,
       label: `${l.name} (${l.code})`,
     })),
   ];
 
   // Filtered views
-  const filteredDepartments = departments.filter((d) => {
+  const filteredDepartments = safeDepartments.filter((d) => {
     if (statusFilter !== 'all' && d.status !== statusFilter) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -642,7 +680,7 @@ export default function CompanyOrganizationPage() {
     return true;
   });
 
-  const filteredTeams = teams.filter((t) => {
+  const filteredTeams = safeTeams.filter((t) => {
     if (statusFilter !== 'all' && t.status !== statusFilter) return false;
     const deptId = typeof t.departmentId === 'string' ? t.departmentId : (t.departmentId as any)?._id;
     if (selectedDeptFilter !== 'all' && deptId !== selectedDeptFilter) return false;
@@ -653,7 +691,7 @@ export default function CompanyOrganizationPage() {
     return true;
   });
 
-  const filteredPositions = positions.filter((p) => {
+  const filteredPositions = safePositions.filter((p) => {
     if (statusFilter !== 'all' && p.status !== statusFilter) return false;
     const deptId = typeof p.departmentId === 'string' ? p.departmentId : (p.departmentId as any)?._id;
     if (selectedDeptFilter !== 'all' && deptId !== selectedDeptFilter) return false;
@@ -666,7 +704,7 @@ export default function CompanyOrganizationPage() {
     return true;
   });
 
-  const filteredLocations = locations.filter((l) => {
+  const filteredLocations = safeLocations.filter((l) => {
     if (statusFilter !== 'all' && l.status !== statusFilter) return false;
     if (locationTypeFilter !== 'all' && l.type !== locationTypeFilter) return false;
     if (searchQuery) {
@@ -1614,13 +1652,13 @@ export default function CompanyOrganizationPage() {
 
           {/* Hierarchy List */}
           <div className="p-6 space-y-3">
-            {levels.length === 0 ? (
+            {safeLevels.length === 0 ? (
               <div className="py-12 text-center text-slate-400">
                 <GitGraph className="size-8 mx-auto text-slate-300 mb-2" />
                 <p className="font-bold text-slate-700">No levels configured</p>
               </div>
             ) : (
-              levels.map((lvl, index) => (
+              safeLevels.map((lvl, index) => (
                 <div
                   key={lvl.id || (lvl as any)._id}
                   className="p-4 rounded-3xl border border-[#E5E7EB] bg-[#FAF7F2]/40 hover:bg-[#FAF7F2] transition-colors flex items-center justify-between gap-4"
@@ -1857,7 +1895,7 @@ export default function CompanyOrganizationPage() {
 
             {/* Departments Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full pt-2">
-              {orgChart?.departments.map((d) => (
+              {(orgChart?.departments || []).map((d) => (
                 <div
                   key={d.id}
                   className="p-5 rounded-3xl bg-[#FAF7F2] border border-[#ECE5DA] shadow-xs space-y-4 flex flex-col justify-between"
@@ -1891,12 +1929,14 @@ export default function CompanyOrganizationPage() {
 
                     {/* Sub-Teams in Department */}
                     <div className="mt-4 space-y-2">
-                      <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400">Teams ({d.teams.length})</p>
-                      {d.teams.length === 0 ? (
+                      <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400">
+                        Teams ({(d.teams || []).length})
+                      </p>
+                      {(!d.teams || d.teams.length === 0) ? (
                         <p className="text-xs text-slate-400 italic">No sub-teams created yet</p>
                       ) : (
                         <div className="space-y-1.5">
-                          {d.teams.map((t) => (
+                          {(d.teams || []).map((t) => (
                             <div
                               key={t.id}
                               className="p-2.5 rounded-2xl bg-white border border-[#E5E7EB] flex items-center justify-between text-xs"
@@ -1914,13 +1954,13 @@ export default function CompanyOrganizationPage() {
                   </div>
 
                   {/* Defined Positions in Department */}
-                  {d.positions.length > 0 && (
+                  {(d.positions || []).length > 0 && (
                     <div className="pt-3 border-t border-[#ECE5DA]">
                       <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                        Positions ({d.positions.length})
+                        Positions ({(d.positions || []).length})
                       </p>
                       <div className="flex flex-wrap gap-1.5">
-                        {d.positions.map((p) => (
+                        {(d.positions || []).map((p) => (
                           <span
                             key={p.id}
                             className="px-2 py-0.5 rounded-lg bg-purple-50 text-purple-800 border border-purple-200 text-[10px] font-bold"

@@ -811,7 +811,7 @@ import type {
 export const companyApi = {
   getProfile: async () => {
     const res = await apiClient<Company>('/company');
-    return res.data;
+    return (res as any)?.data ?? res;
   },
 
   updateProfile: async (payload: Partial<Company>) => {
@@ -819,20 +819,27 @@ export const companyApi = {
       method: 'PATCH',
       body: JSON.stringify(payload),
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   getStats: async (companyId?: string) => {
     const qs = companyId ? `?companyId=${companyId}` : '';
     const res = await apiClient<CompanyStats>(`/company/stats${qs}`);
-    return res.data;
+    return (res as any)?.data ?? res;
   },
 
   getOrgChart: async (companyId?: string) => {
     const qs = companyId ? `?companyId=${companyId}` : '';
     const res = await apiClient<OrgChartTree>(`/company/org-chart${qs}`);
-    return res.data;
+    return (res as any)?.data ?? res;
   },
+};
+
+const extractArray = <T>(res: any): T[] => {
+  if (Array.isArray(res)) return res;
+  if (Array.isArray(res?.data)) return res.data;
+  if (Array.isArray(res?.data?.data)) return res.data.data;
+  return [];
 };
 
 export const orgApi = {
@@ -844,12 +851,12 @@ export const orgApi = {
     if (params?.companyId) searchParams.set('companyId', params.companyId);
     const qs = searchParams.toString();
     const res = await apiClient<Department[]>(`/org/departments${qs ? `?${qs}` : ''}`);
-    return res.data || [];
+    return extractArray<Department>(res);
   },
 
   getDepartment: async (id: string) => {
     const res = await apiClient<Department>(`/org/departments/${id}`);
-    return res.data;
+    return (res as any)?.data ?? res;
   },
 
   createDepartment: async (payload: Partial<Department>) => {
@@ -857,7 +864,7 @@ export const orgApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   updateDepartment: async (id: string, payload: Partial<Department>) => {
@@ -865,7 +872,7 @@ export const orgApi = {
       method: 'PATCH',
       body: JSON.stringify(payload),
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   deleteDepartment: async (id: string) => {
@@ -879,7 +886,7 @@ export const orgApi = {
     const res = await apiClient<Department>(`/org/departments/${id}/toggle-status`, {
       method: 'PATCH',
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   // Teams
@@ -891,12 +898,12 @@ export const orgApi = {
     if (params?.companyId) searchParams.set('companyId', params.companyId);
     const qs = searchParams.toString();
     const res = await apiClient<Team[]>(`/org/teams${qs ? `?${qs}` : ''}`);
-    return res.data || [];
+    return extractArray<Team>(res);
   },
 
   getTeam: async (id: string) => {
     const res = await apiClient<Team>(`/org/teams/${id}`);
-    return res.data;
+    return (res as any)?.data ?? res;
   },
 
   createTeam: async (payload: Partial<Team>) => {
@@ -904,7 +911,7 @@ export const orgApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   updateTeam: async (id: string, payload: Partial<Team>) => {
@@ -912,7 +919,7 @@ export const orgApi = {
       method: 'PATCH',
       body: JSON.stringify(payload),
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   deleteTeam: async (id: string) => {
@@ -926,7 +933,7 @@ export const orgApi = {
     const res = await apiClient<Team>(`/org/teams/${id}/toggle-status`, {
       method: 'PATCH',
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   // Positions
@@ -939,7 +946,7 @@ export const orgApi = {
     if (params?.companyId) searchParams.set('companyId', params.companyId);
     const qs = searchParams.toString();
     const res = await apiClient<Position[]>(`/org/positions${qs ? `?${qs}` : ''}`);
-    return res.data || [];
+    return extractArray<Position>(res);
   },
 
   createPosition: async (payload: Partial<Position>) => {
@@ -947,7 +954,7 @@ export const orgApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   updatePosition: async (id: string, payload: Partial<Position>) => {
@@ -955,7 +962,7 @@ export const orgApi = {
       method: 'PATCH',
       body: JSON.stringify(payload),
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   deletePosition: async (id: string) => {
@@ -969,14 +976,14 @@ export const orgApi = {
     const res = await apiClient<Position>(`/org/positions/${id}/toggle-status`, {
       method: 'PATCH',
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   // Levels
   listLevels: async (companyId?: string) => {
     const qs = companyId ? `?companyId=${companyId}` : '';
     const res = await apiClient<Level[]>(`/org/levels${qs}`);
-    return res.data || [];
+    return extractArray<Level>(res);
   },
 
   createLevel: async (payload: Partial<Level>) => {
@@ -984,7 +991,7 @@ export const orgApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   updateLevel: async (id: string, payload: Partial<Level>) => {
@@ -992,7 +999,7 @@ export const orgApi = {
       method: 'PATCH',
       body: JSON.stringify(payload),
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   reorderLevels: async (levels: { id: string; rank: number }[]) => {
@@ -1000,7 +1007,7 @@ export const orgApi = {
       method: 'PUT',
       body: JSON.stringify({ levels }),
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   deleteLevel: async (id: string) => {
@@ -1014,7 +1021,7 @@ export const orgApi = {
     const res = await apiClient<Level>(`/org/levels/${id}/toggle-status`, {
       method: 'PATCH',
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   // Locations
@@ -1025,7 +1032,7 @@ export const orgApi = {
     if (params?.companyId) searchParams.set('companyId', params.companyId);
     const qs = searchParams.toString();
     const res = await apiClient<Location[]>(`/org/locations${qs ? `?${qs}` : ''}`);
-    return res.data || [];
+    return extractArray<Location>(res);
   },
 
   createLocation: async (payload: Partial<Location>) => {
@@ -1033,7 +1040,7 @@ export const orgApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   updateLocation: async (id: string, payload: Partial<Location>) => {
@@ -1041,7 +1048,7 @@ export const orgApi = {
       method: 'PATCH',
       body: JSON.stringify(payload),
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 
   deleteLocation: async (id: string) => {
@@ -1055,9 +1062,10 @@ export const orgApi = {
     const res = await apiClient<Location>(`/org/locations/${id}/toggle-status`, {
       method: 'PATCH',
     });
-    return res;
+    return (res as any)?.data ?? res;
   },
 };
+
 
 
 
