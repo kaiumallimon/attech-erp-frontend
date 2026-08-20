@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import {
   Users,
+  Building2,
   Code2,
   ShieldCheck,
   Activity,
@@ -167,6 +168,20 @@ export default function DashboardOverviewPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Link
+              href="/dashboard/company"
+              className="p-4 rounded-3xl border border-[#E5E7EB] bg-[#FAF7F2]/50 hover:bg-[#FAF7F2] transition-all space-y-2 group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="size-8 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
+                  <Building2 className="size-4" />
+                </div>
+                <ArrowRight className="size-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+              <p className="text-xs font-bold text-[#111111]">Company & Organization</p>
+              <p className="text-[11px] text-slate-500">Legal identity, dynamic departments, teams, positions, levels & locations.</p>
+            </Link>
+
+            <Link
               href="/dashboard/users"
               className="p-4 rounded-3xl border border-[#E5E7EB] bg-[#FAF7F2]/50 hover:bg-[#FAF7F2] transition-all space-y-2 group"
             >
@@ -213,7 +228,7 @@ export default function DashboardOverviewPage() {
               className="p-4 rounded-3xl border border-[#E5E7EB] bg-[#FAF7F2]/50 hover:bg-[#FAF7F2] transition-all space-y-2 group"
             >
               <div className="flex items-center justify-between">
-                <div className="size-8 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
+                <div className="size-8 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold text-xs">
                   <KeyRound className="size-4" />
                 </div>
                 <ArrowRight className="size-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
