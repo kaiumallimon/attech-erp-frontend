@@ -41,6 +41,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
 
   const governanceNav = [
     { name: 'Company & Org', href: '/dashboard/company', icon: Building2 },
+    { name: 'Employees', href: '/dashboard/employees', icon: Briefcase },
     { name: 'Users', href: '/dashboard/users', icon: Users },
     { name: 'CDN & Storage', href: '/dashboard/cdn', icon: Cloud },
     { name: 'Security & Audit', href: '/dashboard/audit', icon: ShieldAlert },

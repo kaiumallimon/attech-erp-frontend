@@ -18,6 +18,7 @@ import {
   Settings,
   ArrowRight,
   Zap,
+  Briefcase,
 } from 'lucide-react';
 import { useAuth } from '../context/auth-context';
 import { Breadcrumbs } from './breadcrumbs';
@@ -27,6 +28,7 @@ import GradualBlur from './ui/gradual-blur';
 const ROUTE_TITLES: Record<string, { title: string; subtitle?: string }> = {
   '/dashboard': { title: 'Overview Dashboard', subtitle: 'Real-time agency operations & metrics' },
   '/dashboard/company': { title: 'Company & Organization', subtitle: 'Legal identity, dynamic departments, teams, positions & levels' },
+  '/dashboard/employees': { title: 'Employees & Workforce', subtitle: 'Workforce directory, employment lifecycle, reporting hierarchy & skills' },
   '/dashboard/users': { title: 'User Management', subtitle: 'System login accounts, credentials & RBAC role provisioning' },
   '/dashboard/cdn': { title: 'CDN & Media Storage', subtitle: 'Cloudinary digital asset management & optimization' },
   '/dashboard/audit': { title: 'Security Audit Trail', subtitle: 'Immutable compliance logging & security telemetry' },
@@ -38,6 +40,7 @@ const ROUTE_TITLES: Record<string, { title: string; subtitle?: string }> = {
 const SEARCH_ITEMS = [
   { id: 'overview', name: 'Overview Dashboard', href: '/dashboard', category: 'Pages', icon: LayoutDashboard, keywords: 'home stats metrics summary' },
   { id: 'company', name: 'Company & Organization', href: '/dashboard/company', category: 'Pages', icon: Building2, keywords: 'company profile organization departments teams positions levels locations org chart' },
+  { id: 'employees', name: 'Employees & Workforce', href: '/dashboard/employees', category: 'Pages', icon: Briefcase, keywords: 'employees workforce directory staff hierarchy skills documents manager' },
   { id: 'users', name: 'User Management', href: '/dashboard/users', category: 'Pages', icon: Users, keywords: 'users login accounts roles permissions credentials' },
   { id: 'cdn', name: 'CDN & Media Storage', href: '/dashboard/cdn', category: 'Pages', icon: ShieldAlert, keywords: 'assets images media cloudinary storage' },
   { id: 'audit', name: 'Security Audit Trail', href: '/dashboard/audit', category: 'Pages', icon: ShieldAlert, keywords: 'security logs compliance events' },

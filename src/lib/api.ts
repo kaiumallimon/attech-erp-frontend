@@ -1066,6 +1066,150 @@ export const orgApi = {
   },
 };
 
+// ============================================================================
+// EMPLOYEES & WORKFORCE API
+// ============================================================================
+
+import type {
+  Employee,
+  EmployeeStats,
+  Skill,
+  CreateEmployeePayload,
+  UpdateEmployeePayload,
+  UpdateEmployeeStatusPayload,
+  AttachDocumentPayload,
+} from '../types/employee';
+
+export const employeesApi = {
+  list: async (params?: {
+    departmentId?: string;
+    teamId?: string;
+    positionId?: string;
+    levelId?: string;
+    locationId?: string;
+    managerId?: string;
+    employmentType?: string;
+    employmentStatus?: string;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    page?: number;
+    limit?: number;
+    companyId?: string;
+  }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.departmentId && params.departmentId !== 'all') searchParams.set('departmentId', params.departmentId);
+    if (params?.teamId && params.teamId !== 'all') searchParams.set('teamId', params.teamId);
+    if (params?.positionId && params.positionId !== 'all') searchParams.set('positionId', params.positionId);
+    if (params?.levelId && params.levelId !== 'all') searchParams.set('levelId', params.levelId);
+    if (params?.locationId && params.locationId !== 'all') searchParams.set('locationId', params.locationId);
+    if (params?.managerId && params.managerId !== 'all') searchParams.set('managerId', params.managerId);
+    if (params?.employmentType && params.employmentType !== 'all') searchParams.set('employmentType', params.employmentType);
+    if (params?.employmentStatus && params.employmentStatus !== 'all') searchParams.set('employmentStatus', params.employmentStatus);
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.companyId) searchParams.set('companyId', params.companyId);
+
+    const qs = searchParams.toString();
+    const res = await apiClient<Employee[]>(`/employees${qs ? `?${qs}` : ''}`);
+    const data = extractArray<Employee>(res);
+    const meta = (res as any)?.meta || { total: data.length, page: 1, limit: 20, totalPages: 1 };
+    return { data, meta };
+  },
+
+  getStats: async (companyId?: string) => {
+    const qs = companyId ? `?companyId=${companyId}` : '';
+    const res = await apiClient<EmployeeStats>(`/employees/stats${qs}`);
+    return (res as any)?.data ?? res;
+  },
+
+  getMyProfile: async () => {
+    const res = await apiClient<Employee>('/employees/me');
+    return (res as any)?.data ?? res;
+  },
+
+  getById: async (id: string, companyId?: string) => {
+    const qs = companyId ? `?companyId=${companyId}` : '';
+    const res = await apiClient<Employee>(`/employees/${id}${qs}`);
+    return (res as any)?.data ?? res;
+  },
+
+  create: async (payload: CreateEmployeePayload, companyId?: string) => {
+    const qs = companyId ? `?companyId=${companyId}` : '';
+    const res = await apiClient<Employee>(`/employees${qs}`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return (res as any)?.data ?? res;
+  },
+
+  update: async (id: string, payload: UpdateEmployeePayload, companyId?: string) => {
+    const qs = companyId ? `?companyId=${companyId}` : '';
+    const res = await apiClient<Employee>(`/employees/${id}${qs}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    return (res as any)?.data ?? res;
+  },
+
+  updateStatus: async (id: string, payload: UpdateEmployeeStatusPayload, companyId?: string) => {
+    const qs = companyId ? `?companyId=${companyId}` : '';
+    const res = await apiClient<Employee>(`/employees/${id}/status${qs}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    return (res as any)?.data ?? res;
+  },
+
+  attachDocument: async (id: string, payload: AttachDocumentPayload, companyId?: string) => {
+    const qs = companyId ? `?companyId=${companyId}` : '';
+    const res = await apiClient<Employee>(`/employees/${id}/documents${qs}`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return (res as any)?.data ?? res;
+  },
+
+  removeDocument: async (id: string, docId: string, companyId?: string) => {
+    const qs = companyId ? `?companyId=${companyId}` : '';
+    const res = await apiClient<{ success: boolean; message: string }>(
+      `/employees/${id}/documents/${docId}${qs}`,
+      {
+        method: 'DELETE',
+      }
+    );
+    return res;
+  },
+
+  delete: async (id: string, companyId?: string) => {
+    const qs = companyId ? `?companyId=${companyId}` : '';
+    const res = await apiClient<{ success: boolean; message: string }>(`/employees/${id}${qs}`, {
+      method: 'DELETE',
+    });
+    return res;
+  },
+};
+
+export const skillsApi = {
+  list: async (search?: string) => {
+    const qs = search ? `?search=${encodeURIComponent(search)}` : '';
+    const res = await apiClient<Skill[]>(`/skills${qs}`);
+    return extractArray<Skill>(res);
+  },
+
+  create: async (payload: { name: string; category?: string; description?: string }) => {
+    const res = await apiClient<Skill>('/skills', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return (res as any)?.data ?? res;
+  },
+};
+
+
 
 
 

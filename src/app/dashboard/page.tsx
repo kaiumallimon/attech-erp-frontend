@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   Users,
   Building2,
+  Briefcase,
   Code2,
   ShieldCheck,
   Activity,
@@ -179,6 +180,20 @@ export default function DashboardOverviewPage() {
               </div>
               <p className="text-xs font-bold text-[#111111]">Company & Organization</p>
               <p className="text-[11px] text-slate-500">Legal identity, dynamic departments, teams, positions, levels & locations.</p>
+            </Link>
+
+            <Link
+              href="/dashboard/employees"
+              className="p-4 rounded-3xl border border-[#E5E7EB] bg-[#FAF7F2]/50 hover:bg-[#FAF7F2] transition-all space-y-2 group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="size-8 rounded-2xl bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-xs">
+                  <Briefcase className="size-4" />
+                </div>
+                <ArrowRight className="size-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+              <p className="text-xs font-bold text-[#111111]">Employees & Workforce</p>
+              <p className="text-[11px] text-slate-500">Workforce directory, lifecycle terms, reporting manager hierarchy & skills.</p>
             </Link>
 
             <Link
