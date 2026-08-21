@@ -10,6 +10,7 @@ import {
   Link as LinkIcon,
   PhoneCall,
   Plus,
+  Search,
   Trash2,
   Video,
   X,
@@ -32,6 +33,7 @@ export default function CrmActivitiesPage() {
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   const [activities, setActivities] = useState<CrmActivity[]>([]);
+  const [activitiesSearch, setActivitiesSearch] = useState('');
   const [activityTypeFilter, setActivityTypeFilter] = useState('all');
   const [activityStatusFilter, setActivityStatusFilter] = useState('all');
 
@@ -77,6 +79,7 @@ export default function CrmActivitiesPage() {
         crmApi.activities.list({
           type: activityTypeFilter,
           status: activityStatusFilter,
+          search: activitiesSearch,
         }),
         employeesApi.list({ limit: 100 }).catch(() => ({ data: [] })),
         crmApi.deals.list().catch(() => ({ data: [] })),
@@ -130,7 +133,7 @@ export default function CrmActivitiesPage() {
   const handleCompleteActivity = async (activityId: string) => {
     try {
       await crmApi.activities.complete(activityId);
-      showToast('Task marked as completed.');
+      showToast('Activity marked as completed.');
       void loadActivities();
     } catch (err: any) {
       showToast(err.message || 'Failed to complete activity', 'error');
@@ -152,9 +155,13 @@ export default function CrmActivitiesPage() {
         </div>
       )}
 
+      {/* Compact ERP Header */}
       <CrmNavHeader
-        title="Activities, Tasks & Interactions"
-        subtitle="Universal log of sales tasks, customer phone calls, Google Meet / Zoom review sessions, and follow-ups."
+        title="Activities"
+        subtitle="Universal log of client phone calls, meetings, follow-ups, and sales tasks."
+        breadcrumb={[
+          { label: 'CRM & Sales', href: '/dashboard/crm' },
+        ]}
         onRefresh={() => void loadActivities()}
         isRefreshing={loading}
         actionButton={
@@ -175,23 +182,35 @@ export default function CrmActivitiesPage() {
               });
               setIsActivityModalOpen(true);
             }}
-            className="h-10 px-5 rounded-full bg-[#AEFF48] text-[#0B2E23] font-bold text-xs hover:bg-[#9DE83E] transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+            className="h-9 px-4 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-xs hover:bg-[#0B251A] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
-            <Plus className="size-4" />
+            <Plus className="size-3.5" />
             <span>Log Activity</span>
           </button>
         }
       />
 
       {/* Toolbar Filters */}
-      <div className="p-4 rounded-3xl bg-white border border-[#E5E7EB] shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="p-3.5 rounded-3xl bg-white border border-[#E5E7EB] shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search activities by subject..."
+              value={activitiesSearch}
+              onChange={(e) => setActivitiesSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && void loadActivities()}
+              className="w-full h-9 pl-9 pr-3 rounded-full border border-[#E5E7EB] text-xs text-slate-800 focus:outline-none focus:border-[#0B2E23]"
+            />
+          </div>
+
           <select
             value={activityTypeFilter}
             onChange={(e) => setActivityTypeFilter(e.target.value)}
-            className="h-10 px-4 rounded-full border border-[#E5E7EB] text-xs font-semibold text-slate-700 bg-white"
+            className="h-9 px-3 rounded-full border border-[#E5E7EB] text-xs font-semibold text-slate-700 bg-white"
           >
-            <option value="all">All Activity Types</option>
+            <option value="all">All Types</option>
             <option value="TASK">Tasks</option>
             <option value="CALL">Calls</option>
             <option value="MEETING">Meetings</option>
@@ -202,7 +221,7 @@ export default function CrmActivitiesPage() {
           <select
             value={activityStatusFilter}
             onChange={(e) => setActivityStatusFilter(e.target.value)}
-            className="h-10 px-4 rounded-full border border-[#E5E7EB] text-xs font-semibold text-slate-700 bg-white"
+            className="h-9 px-3 rounded-full border border-[#E5E7EB] text-xs font-semibold text-slate-700 bg-white"
           >
             <option value="all">All Statuses</option>
             <option value="PENDING">Pending</option>
@@ -210,6 +229,14 @@ export default function CrmActivitiesPage() {
             <option value="CANCELLED">Cancelled</option>
           </select>
         </div>
+
+        <button
+          type="button"
+          onClick={() => void loadActivities()}
+          className="h-9 px-4 rounded-full border border-[#E5E7EB] text-slate-700 font-bold text-xs hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+        >
+          Filter
+        </button>
       </div>
 
       {/* Activities List */}
@@ -316,17 +343,17 @@ export default function CrmActivitiesPage() {
       {isActivityModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
           <div className="w-full max-w-lg rounded-4xl bg-white shadow-2xl border border-[#E5E7EB] overflow-hidden my-8">
-            <div className="p-6 bg-[#0B2E23] text-white flex items-center justify-between">
+            <div className="p-5 bg-[#0B2E23] text-white flex items-center justify-between">
               <div>
-                <h3 className="text-base font-black">Log Customer Activity</h3>
-                <p className="text-xs text-white/70">Record calls, meetings, follow-ups, and notes</p>
+                <h3 className="text-sm font-black">Log Activity</h3>
+                <p className="text-[11px] text-white/70">Record calls, meetings, follow-ups, and notes</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsActivityModalOpen(false)}
-                className="size-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
+                className="size-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
               >
-                <X className="size-4" />
+                <X className="size-3.5" />
               </button>
             </div>
 
@@ -337,7 +364,7 @@ export default function CrmActivitiesPage() {
                   <select
                     value={activityForm.type}
                     onChange={(e) => setActivityForm((prev) => ({ ...prev, type: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-semibold text-slate-800"
+                    className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-semibold text-slate-800"
                   >
                     <option value="TASK">Task</option>
                     <option value="CALL">Call</option>
@@ -351,7 +378,7 @@ export default function CrmActivitiesPage() {
                   <select
                     value={activityForm.priority}
                     onChange={(e) => setActivityForm((prev) => ({ ...prev, priority: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-semibold text-slate-800"
+                    className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-semibold text-slate-800"
                   >
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
@@ -362,14 +389,14 @@ export default function CrmActivitiesPage() {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Subject / Title *</label>
+                <label className="block font-bold text-slate-700 mb-1">Subject *</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Discussed SOW timeline with Elena"
+                  placeholder="e.g. Follow-up meeting with product team"
                   value={activityForm.subject}
                   onChange={(e) => setActivityForm((prev) => ({ ...prev, subject: e.target.value }))}
-                  className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs font-bold"
+                  className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs font-bold"
                 />
               </div>
 
@@ -380,7 +407,7 @@ export default function CrmActivitiesPage() {
                     value={activityForm.assignedToId}
                     options={employeeOptions}
                     onChange={(val) => setActivityForm((prev) => ({ ...prev, assignedToId: val }))}
-                    className="w-full h-10 text-xs"
+                    className="w-full h-9 text-xs"
                   />
                 </div>
                 <div>
@@ -389,19 +416,19 @@ export default function CrmActivitiesPage() {
                     type="date"
                     value={activityForm.dueDate}
                     onChange={(e) => setActivityForm((prev) => ({ ...prev, dueDate: e.target.value }))}
-                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                    className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Meeting URL / Location (optional)</label>
+                <label className="block font-bold text-slate-700 mb-1">Location / Meeting URL (optional)</label>
                 <input
                   type="text"
                   placeholder="https://meet.google.com/..."
                   value={activityForm.meetingLocation}
                   onChange={(e) => setActivityForm((prev) => ({ ...prev, meetingLocation: e.target.value }))}
-                  className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                  className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
                 />
               </div>
 
@@ -416,17 +443,17 @@ export default function CrmActivitiesPage() {
                 />
               </div>
 
-              <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsActivityModalOpen(false)}
-                  className="h-10 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
+                  className="h-9 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="h-10 px-6 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer shadow-xs"
+                  className="h-9 px-5 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer shadow-xs"
                 >
                   Save Activity
                 </button>

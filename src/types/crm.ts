@@ -433,6 +433,9 @@ export interface CrmDashboardSummary {
     wonDealsCount: number;
     lostDealsCount: number;
     openPipelineValue: number;
+    weightedPipelineValue?: number;
+    wonDealValue?: number;
+    lostDealValue?: number;
     wonRevenue: number;
     lostRevenue: number;
     totalDealValue: number;

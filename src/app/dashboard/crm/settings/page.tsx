@@ -38,6 +38,9 @@ export default function CrmSettingsPage() {
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [tagForm, setTagForm] = useState({ name: '', color: '#0B2E23' });
 
+  const [isLostReasonModalOpen, setIsLostReasonModalOpen] = useState(false);
+  const [lostReasonForm, setLostReasonForm] = useState({ name: '', description: '' });
+
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
     setToastMessage({ text, type });
     setTimeout(() => setToastMessage(null), 4000);
@@ -76,7 +79,7 @@ export default function CrmSettingsPage() {
     e.preventDefault();
     try {
       await crmApi.settings.createLeadSource(sourceForm);
-      showToast('Lead Source created successfully.');
+      showToast('Lead Source created.');
       setIsSourceModalOpen(false);
       setSourceForm({ name: '', description: '' });
       void loadSettings();
@@ -100,7 +103,7 @@ export default function CrmSettingsPage() {
     e.preventDefault();
     try {
       await crmApi.settings.createTag({ ...tagForm, applicableTo: ['LEAD', 'ACCOUNT', 'CONTACT', 'DEAL'] });
-      showToast('Tag created successfully.');
+      showToast('Tag created.');
       setIsTagModalOpen(false);
       setTagForm({ name: '', color: '#0B2E23' });
       void loadSettings();
@@ -120,6 +123,19 @@ export default function CrmSettingsPage() {
     }
   };
 
+  const handleCreateLostReason = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await crmApi.settings.createLostReason(lostReasonForm);
+      showToast('Lost Reason created.');
+      setIsLostReasonModalOpen(false);
+      setLostReasonForm({ name: '', description: '' });
+      void loadSettings();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to create lost reason', 'error');
+    }
+  };
+
   return (
     <div className="space-y-6 pb-20 select-none">
       {toastMessage && (
@@ -135,37 +151,36 @@ export default function CrmSettingsPage() {
         </div>
       )}
 
+      {/* Compact ERP Header */}
       <CrmNavHeader
-        title="CRM Settings & Customization"
-        subtitle="Manage sales pipeline stages, probability percentages, inbound lead channels, tags, and classification taxonomies."
+        title="Settings"
+        subtitle="Configure sales pipelines, stages, lead acquisition channels, lost reasons, and tags."
+        breadcrumb={[
+          { label: 'CRM & Sales', href: '/dashboard/crm' },
+        ]}
         onRefresh={() => void loadSettings()}
         isRefreshing={loading}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Sales Pipelines & Stages */}
-        <div className="p-6 rounded-4xl bg-white border border-[#E5E7EB] shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">Sales Pipelines & Stages</h3>
-              <p className="text-xs text-slate-400">Configured agency sales flows and weighted probabilities</p>
-            </div>
+        <div className="p-5 rounded-4xl bg-white border border-[#E5E7EB] shadow-xs space-y-4">
+          <div>
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">Pipelines & Stages</h3>
+            <p className="text-[11px] text-slate-400">Configured agency sales flows and weighted probabilities</p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             {pipelines.map((p) => (
-              <div key={p.id} className="p-4 rounded-3xl bg-[#FAF7F2] border border-[#ECE5DA] space-y-3">
+              <div key={p.id} className="p-4 rounded-3xl bg-[#FAF7F2] border border-[#ECE5DA] space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-extrabold text-slate-900">{p.name}</h4>
-                      {p.isDefault && (
-                        <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-md bg-[#0B2E23] text-[#AEFF48]">
-                          Default Pipeline
-                        </span>
-                      )}
-                    </div>
-                    {p.description && <p className="text-[11px] text-slate-500 mt-0.5">{p.description}</p>}
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-xs font-extrabold text-slate-900">{p.name}</h4>
+                    {p.isDefault && (
+                      <span className="text-[8.5px] font-bold uppercase px-2 py-0.2 rounded-md bg-[#0B2E23] text-[#AEFF48]">
+                        Default
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -188,30 +203,30 @@ export default function CrmSettingsPage() {
           </div>
         </div>
 
-        {/* Lead Sources & CRM Tags */}
-        <div className="space-y-6">
-          {/* Lead Sources */}
-          <div className="p-6 rounded-4xl bg-white border border-[#E5E7EB] shadow-xs space-y-4">
+        {/* Lead Sources, Lost Reasons & Tags */}
+        <div className="space-y-5">
+          {/* Inbound Lead Sources */}
+          <div className="p-5 rounded-4xl bg-white border border-[#E5E7EB] shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Lead Acquisition Sources</h3>
-                <p className="text-xs text-slate-400">Categorized inbound prospect channels</p>
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">Lead Acquisition Sources</h3>
+                <p className="text-[11px] text-slate-400">Categorized inbound prospect channels</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsSourceModalOpen(true)}
-                className="px-3 py-1.5 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-[10px] flex items-center gap-1 cursor-pointer"
+                className="px-3 py-1 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-[10px] flex items-center gap-1 cursor-pointer"
               >
                 <Plus className="size-3" />
                 <span>Add Source</span>
               </button>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 pt-1">
               {leadSources.map((src) => (
                 <div
                   key={src.id}
-                  className="px-3 py-1.5 rounded-2xl bg-[#FAF7F2] border border-[#ECE5DA] text-xs font-bold text-slate-800 flex items-center gap-2 group"
+                  className="px-3 py-1 rounded-2xl bg-[#FAF7F2] border border-[#ECE5DA] text-xs font-bold text-slate-800 flex items-center gap-2 group"
                 >
                   <span>{src.name}</span>
                   <button
@@ -219,31 +234,57 @@ export default function CrmSettingsPage() {
                     onClick={() => void handleDeleteLeadSource(src.id)}
                     className="size-4 rounded-full text-slate-400 hover:text-rose-600 flex items-center justify-center cursor-pointer"
                   >
-                    $\times$
+                    ×
                   </button>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* CRM Tags */}
-          <div className="p-6 rounded-4xl bg-white border border-[#E5E7EB] shadow-xs space-y-4">
+          {/* Lost Reasons */}
+          <div className="p-5 rounded-4xl bg-white border border-[#E5E7EB] shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">CRM Taxonomy Tags</h3>
-                <p className="text-xs text-slate-400">Labels across Leads, Accounts, and Deals</p>
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">Closed Lost Reasons</h3>
+                <p className="text-[11px] text-slate-400">Database-driven reasons for deal loss analytics</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLostReasonModalOpen(true)}
+                className="px-3 py-1 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-[10px] flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="size-3" />
+                <span>Add Reason</span>
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {lostReasons.map((lr) => (
+                <span key={lr.id} className="px-2.5 py-1 rounded-xl bg-rose-50 text-rose-800 text-[10px] font-bold border border-rose-200">
+                  {lr.name}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* CRM Tags */}
+          <div className="p-5 rounded-4xl bg-white border border-[#E5E7EB] shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">CRM Taxonomy Tags</h3>
+                <p className="text-[11px] text-slate-400">Labels across Leads, Accounts, and Deals</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsTagModalOpen(true)}
-                className="px-3 py-1.5 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-[10px] flex items-center gap-1 cursor-pointer"
+                className="px-3 py-1 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-[10px] flex items-center gap-1 cursor-pointer"
               >
                 <Plus className="size-3" />
                 <span>Add Tag</span>
               </button>
             </div>
 
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 pt-1">
               {crmTags.map((tg) => (
                 <div
                   key={tg.id}
@@ -256,42 +297,10 @@ export default function CrmSettingsPage() {
                     onClick={() => void handleDeleteTag(tg.id)}
                     className="size-3.5 rounded-full bg-black/20 hover:bg-black/40 text-white flex items-center justify-center cursor-pointer"
                   >
-                    $\times$
+                    ×
                   </button>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Deal Types & Lost Reasons */}
-          <div className="p-6 rounded-4xl bg-white border border-[#E5E7EB] shadow-xs space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">Deal Types & Lost Reasons</h3>
-              <p className="text-xs text-slate-400">Classification metadata</p>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Deal Types</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {dealTypes.map((dt) => (
-                    <span key={dt.id} className="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 text-[10px] font-bold">
-                      {dt.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Lost Reasons</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {lostReasons.map((lr) => (
-                    <span key={lr.id} className="px-2.5 py-1 rounded-xl bg-rose-50 text-rose-800 text-[10px] font-bold">
-                      {lr.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -308,25 +317,62 @@ export default function CrmSettingsPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. YouTube Ad Campaign"
+                  placeholder="e.g. LinkedIn Campaign"
                   value={sourceForm.name}
                   onChange={(e) => setSourceForm((prev) => ({ ...prev, name: e.target.value }))}
-                  className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-bold"
+                  className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-bold"
                 />
               </div>
               <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsSourceModalOpen(false)}
-                  className="h-10 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
+                  className="h-9 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="h-10 px-6 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer"
+                  className="h-9 px-5 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer"
                 >
                   Add Source
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Add Lost Reason */}
+      {isLostReasonModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+          <div className="w-full max-w-sm rounded-4xl bg-white shadow-2xl border border-[#E5E7EB] p-6 space-y-4 text-xs">
+            <h3 className="text-sm font-black text-slate-900">Add Lost Reason</h3>
+            <form onSubmit={handleCreateLostReason} className="space-y-3">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Reason Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Budget Deficit"
+                  value={lostReasonForm.name}
+                  onChange={(e) => setLostReasonForm((prev) => ({ ...prev, name: e.target.value }))}
+                  className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-bold"
+                />
+              </div>
+              <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsLostReasonModalOpen(false)}
+                  className="h-9 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="h-9 px-5 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer"
+                >
+                  Add Reason
                 </button>
               </div>
             </form>
@@ -345,32 +391,32 @@ export default function CrmSettingsPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Fintech VIP"
+                  placeholder="e.g. Enterprise Client"
                   value={tagForm.name}
                   onChange={(e) => setTagForm((prev) => ({ ...prev, name: e.target.value }))}
-                  className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-bold"
+                  className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-bold"
                 />
               </div>
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Color</label>
+                <label className="block font-bold text-slate-700 mb-1">Tag Color</label>
                 <input
                   type="color"
                   value={tagForm.color}
                   onChange={(e) => setTagForm((prev) => ({ ...prev, color: e.target.value }))}
-                  className="w-full h-10 p-1 rounded-2xl border border-[#E5E7EB] bg-white cursor-pointer"
+                  className="w-full h-9 p-1 rounded-2xl border border-[#E5E7EB] bg-white cursor-pointer"
                 />
               </div>
               <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsTagModalOpen(false)}
-                  className="h-10 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
+                  className="h-9 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="h-10 px-6 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer"
+                  className="h-9 px-5 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer"
                 >
                   Add Tag
                 </button>

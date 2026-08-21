@@ -3,12 +3,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
+  Building2,
   CheckCircle2,
+  Clock,
+  DollarSign,
   Edit2,
+  Globe,
   Mail,
+  MessageSquare,
   Phone,
   Plus,
   Search,
+  Star,
   Trash2,
   Users,
   X,
@@ -32,6 +38,7 @@ export default function CrmContactsPage() {
   const [accounts, setAccounts] = useState<CrmAccount[]>([]);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<CrmContact | null>(null);
+  const [selectedContactDetail, setSelectedContactDetail] = useState<CrmContact | null>(null);
 
   const [contactForm, setContactForm] = useState<{
     accountId: string;
@@ -93,7 +100,7 @@ export default function CrmContactsPage() {
   const accountOptions: SelectOption[] = useMemo(() => {
     const list = Array.isArray(accounts) ? accounts : [];
     return [
-      { key: '', value: '', label: 'Select Client Account' },
+      { key: '', value: '', label: 'Select Account' },
       ...list.map((a) => ({ key: a.id, value: a.id, label: a.name })),
     ];
   }, [accounts]);
@@ -116,6 +123,15 @@ export default function CrmContactsPage() {
     }
   };
 
+  const handleOpenContactProfile = async (contactId: string) => {
+    try {
+      const full = await crmApi.contacts.get(contactId);
+      setSelectedContactDetail(full);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to load contact details', 'error');
+    }
+  };
+
   return (
     <div className="space-y-6 pb-20 select-none">
       {toastMessage && (
@@ -131,9 +147,13 @@ export default function CrmContactsPage() {
         </div>
       )}
 
+      {/* Compact ERP Header */}
       <CrmNavHeader
-        title="Stakeholder Contacts"
-        subtitle="Maintain key decision makers, client executives, and direct communications touchpoints."
+        title="Contacts"
+        subtitle="Individual stakeholder contacts, key decision makers, and communications touchpoints."
+        breadcrumb={[
+          { label: 'CRM & Sales', href: '/dashboard/crm' },
+        ]}
         onRefresh={() => void loadContacts()}
         isRefreshing={loading}
         actionButton={
@@ -157,33 +177,33 @@ export default function CrmContactsPage() {
               });
               setIsContactModalOpen(true);
             }}
-            className="h-10 px-5 rounded-full bg-[#AEFF48] text-[#0B2E23] font-bold text-xs hover:bg-[#9DE83E] transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+            className="h-9 px-4 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-xs hover:bg-[#0B251A] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
-            <Plus className="size-4" />
-            <span>New Contact</span>
+            <Plus className="size-3.5" />
+            <span>Add Contact</span>
           </button>
         }
       />
 
       {/* Search & Filter */}
-      <div className="p-4 rounded-3xl bg-white border border-[#E5E7EB] shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3 flex-1 min-w-[280px]">
+      <div className="p-3.5 rounded-3xl bg-white border border-[#E5E7EB] shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 flex-1 min-w-[280px]">
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400" />
             <input
               type="text"
               placeholder="Search contacts by name, email, job title..."
               value={contactsSearch}
               onChange={(e) => setContactsSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && void loadContacts()}
-              className="w-full h-10 pl-10 pr-4 rounded-full border border-[#E5E7EB] text-xs text-slate-800 focus:outline-none focus:border-[#0B2E23]"
+              className="w-full h-9 pl-9 pr-3 rounded-full border border-[#E5E7EB] text-xs text-slate-800 focus:outline-none focus:border-[#0B2E23]"
             />
           </div>
 
           <select
             value={contactsAccountFilter}
             onChange={(e) => setContactsAccountFilter(e.target.value)}
-            className="h-10 px-4 rounded-full border border-[#E5E7EB] text-xs font-semibold text-slate-700 bg-white"
+            className="h-9 px-3 rounded-full border border-[#E5E7EB] text-xs font-semibold text-slate-700 bg-white"
           >
             <option value="all">All Accounts</option>
             {accounts.map((a) => (
@@ -197,9 +217,9 @@ export default function CrmContactsPage() {
         <button
           type="button"
           onClick={() => void loadContacts()}
-          className="h-10 px-4 rounded-full border border-[#E5E7EB] text-slate-700 font-bold text-xs hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+          className="h-9 px-4 rounded-full border border-[#E5E7EB] text-slate-700 font-bold text-xs hover:bg-[#FAF7F2] transition-colors cursor-pointer"
         >
-          Search
+          Filter
         </button>
       </div>
 
@@ -207,91 +227,104 @@ export default function CrmContactsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {contacts.length === 0 ? (
           <div className="col-span-full text-center py-16 text-xs text-slate-400 bg-white rounded-4xl border border-[#E5E7EB]">
-            No contacts found. Click &quot;New Contact&quot; to register stakeholders.
+            No contacts found. Click &quot;Add Contact&quot; to register a client stakeholder.
           </div>
         ) : (
           contacts.map((contact) => (
             <div
               key={contact.id}
-              className="p-5 rounded-3xl bg-white border border-[#E5E7EB] shadow-xs space-y-3"
+              className="p-5 rounded-3xl bg-white border border-[#E5E7EB] shadow-xs space-y-3 flex flex-col justify-between hover:border-[#0B2E23]/30 transition-all"
             >
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="text-sm font-extrabold text-slate-900">
-                      {contact.firstName} {contact.lastName}
-                    </h4>
-                    {contact.isPrimary && (
-                      <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-md bg-amber-100 text-amber-800">
-                        Primary
-                      </span>
-                    )}
+              <div className="space-y-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-sm font-extrabold text-slate-900">
+                        {contact.firstName} {contact.lastName}
+                      </h4>
+                      {contact.isPrimary && (
+                        <span className="text-[8.5px] font-bold uppercase px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-800 flex items-center gap-0.5">
+                          <Star className="size-2.5 fill-amber-600 text-amber-600" />
+                          <span>Primary</span>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-500">{contact.jobTitle || 'Stakeholder'}</p>
                   </div>
-                  <p className="text-[11px] text-slate-500">{contact.jobTitle || 'Stakeholder'}</p>
+
+                  <span className="text-[10px] font-bold text-slate-400">
+                    {(contact.accountId as any)?.name || 'Direct'}
+                  </span>
                 </div>
 
-                <span className="text-[10px] font-bold text-slate-400">
-                  {(contact.accountId as any)?.name || 'Direct'}
-                </span>
+                <div className="space-y-1 text-xs text-slate-600 pt-1">
+                  {contact.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="size-3.5 text-slate-400 shrink-0" />
+                      <a href={`mailto:${contact.email}`} className="text-emerald-800 hover:underline truncate">
+                        {contact.email}
+                      </a>
+                    </div>
+                  )}
+                  {contact.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="size-3.5 text-slate-400 shrink-0" />
+                      <span>{contact.phone}</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="space-y-1 text-xs text-slate-600">
-                {contact.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="size-3.5 text-slate-400 shrink-0" />
-                    <a href={`mailto:${contact.email}`} className="text-emerald-800 hover:underline truncate">
-                      {contact.email}
-                    </a>
-                  </div>
-                )}
-                {contact.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="size-3.5 text-slate-400 shrink-0" />
-                    <span>{contact.phone}</span>
-                  </div>
-                )}
-              </div>
+              <div className="pt-2.5 border-t border-[#E5E7EB] flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => void handleOpenContactProfile(contact.id)}
+                  className="px-3 py-1 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-[10px] hover:bg-[#0B251A] cursor-pointer transition-colors"
+                >
+                  View Profile
+                </button>
 
-              <div className="pt-2 border-t border-[#E5E7EB] flex items-center justify-end gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingContact(contact);
-                    setContactForm({
-                      accountId: (contact.accountId as any)?.id || (contact.accountId as any)?._id || (contact.accountId as string),
-                      firstName: contact.firstName,
-                      lastName: contact.lastName,
-                      jobTitle: contact.jobTitle || '',
-                      email: contact.email || '',
-                      phone: contact.phone || '',
-                      mobile: contact.mobile || '',
-                      linkedinUrl: contact.linkedinUrl || '',
-                      notes: contact.notes || '',
-                      isPrimary: contact.isPrimary,
-                      status: contact.status,
-                      tags: contact.tags || [],
-                    });
-                    setIsContactModalOpen(true);
-                  }}
-                  className="size-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 inline-flex items-center justify-center cursor-pointer transition-colors"
-                  title="Edit Contact"
-                >
-                  <Edit2 className="size-3" />
-                </button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (confirm(`Delete contact ${contact.firstName} ${contact.lastName}?`)) {
-                      await crmApi.contacts.delete(contact.id);
-                      showToast('Contact deleted.');
-                      void loadContacts();
-                    }
-                  }}
-                  className="size-7 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 inline-flex items-center justify-center cursor-pointer transition-colors"
-                  title="Delete Contact"
-                >
-                  <Trash2 className="size-3" />
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingContact(contact);
+                      setContactForm({
+                        accountId: (contact.accountId as any)?.id || (contact.accountId as any)?._id || (contact.accountId as string),
+                        firstName: contact.firstName,
+                        lastName: contact.lastName,
+                        jobTitle: contact.jobTitle || '',
+                        email: contact.email || '',
+                        phone: contact.phone || '',
+                        mobile: contact.mobile || '',
+                        linkedinUrl: contact.linkedinUrl || '',
+                        notes: contact.notes || '',
+                        isPrimary: contact.isPrimary,
+                        status: contact.status,
+                        tags: contact.tags || [],
+                      });
+                      setIsContactModalOpen(true);
+                    }}
+                    className="size-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 inline-flex items-center justify-center cursor-pointer transition-colors"
+                    title="Edit Contact"
+                  >
+                    <Edit2 className="size-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (confirm(`Delete contact ${contact.firstName} ${contact.lastName}?`)) {
+                        await crmApi.contacts.delete(contact.id);
+                        showToast('Contact deleted.');
+                        void loadContacts();
+                      }
+                    }}
+                    className="size-7 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 inline-flex items-center justify-center cursor-pointer transition-colors"
+                    title="Delete Contact"
+                  >
+                    <Trash2 className="size-3" />
+                  </button>
+                </div>
               </div>
             </div>
           ))
@@ -302,28 +335,28 @@ export default function CrmContactsPage() {
       {isContactModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
           <div className="w-full max-w-md rounded-4xl bg-white shadow-2xl border border-[#E5E7EB] overflow-hidden my-8">
-            <div className="p-6 bg-[#0B2E23] text-white flex items-center justify-between">
+            <div className="p-5 bg-[#0B2E23] text-white flex items-center justify-between">
               <div>
-                <h3 className="text-base font-black">{editingContact ? 'Edit Contact' : 'New Client Contact'}</h3>
-                <p className="text-xs text-white/70">Associate stakeholder with client account</p>
+                <h3 className="text-sm font-black">{editingContact ? 'Edit Contact' : 'New Contact'}</h3>
+                <p className="text-[11px] text-white/70">Associate stakeholder with account</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsContactModalOpen(false)}
-                className="size-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
+                className="size-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
               >
-                <X className="size-4" />
+                <X className="size-3.5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveContact} className="p-6 space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Client Account *</label>
+                <label className="block font-bold text-slate-700 mb-1">Account *</label>
                 <HeroSelect
                   value={contactForm.accountId}
                   options={accountOptions}
                   onChange={(val) => setContactForm((prev) => ({ ...prev, accountId: val }))}
-                  className="w-full h-10 text-xs"
+                  className="w-full h-9 text-xs"
                 />
               </div>
 
@@ -335,7 +368,7 @@ export default function CrmContactsPage() {
                     required
                     value={contactForm.firstName}
                     onChange={(e) => setContactForm((prev) => ({ ...prev, firstName: e.target.value }))}
-                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                    className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
                   />
                 </div>
                 <div>
@@ -345,7 +378,7 @@ export default function CrmContactsPage() {
                     required
                     value={contactForm.lastName}
                     onChange={(e) => setContactForm((prev) => ({ ...prev, lastName: e.target.value }))}
-                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                    className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
                   />
                 </div>
               </div>
@@ -354,10 +387,10 @@ export default function CrmContactsPage() {
                 <label className="block font-bold text-slate-700 mb-1">Job Title</label>
                 <input
                   type="text"
-                  placeholder="e.g. VP of Technology"
+                  placeholder="e.g. VP of Product"
                   value={contactForm.jobTitle}
                   onChange={(e) => setContactForm((prev) => ({ ...prev, jobTitle: e.target.value }))}
-                  className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                  className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
                 />
               </div>
 
@@ -368,7 +401,7 @@ export default function CrmContactsPage() {
                     type="email"
                     value={contactForm.email}
                     onChange={(e) => setContactForm((prev) => ({ ...prev, email: e.target.value }))}
-                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                    className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
                   />
                 </div>
                 <div>
@@ -377,9 +410,20 @@ export default function CrmContactsPage() {
                     type="text"
                     value={contactForm.phone}
                     onChange={(e) => setContactForm((prev) => ({ ...prev, phone: e.target.value }))}
-                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                    className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">LinkedIn / Social Profile</label>
+                <input
+                  type="text"
+                  placeholder="https://linkedin.com/in/..."
+                  value={contactForm.linkedinUrl}
+                  onChange={(e) => setContactForm((prev) => ({ ...prev, linkedinUrl: e.target.value }))}
+                  className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                />
               </div>
 
               <div className="flex items-center gap-2 pt-1">
@@ -395,22 +439,138 @@ export default function CrmContactsPage() {
                 </label>
               </div>
 
-              <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsContactModalOpen(false)}
-                  className="h-10 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
+                  className="h-9 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="h-10 px-6 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer shadow-xs"
+                  className="h-9 px-5 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer shadow-xs"
                 >
                   {editingContact ? 'Save Changes' : 'Create Contact'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Drawer: Detailed Contact Profile */}
+      {selectedContactDetail && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-end animate-fadeIn">
+          <div className="w-full max-w-lg h-full bg-white shadow-2xl border-l border-[#E5E7EB] overflow-y-auto p-6 sm:p-8 space-y-6 flex flex-col justify-between">
+            <div className="space-y-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-black text-slate-900">
+                      {selectedContactDetail.firstName} {selectedContactDetail.lastName}
+                    </h3>
+                    {selectedContactDetail.isPrimary && (
+                      <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                        Primary
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    {selectedContactDetail.jobTitle || 'Stakeholder'} • {(selectedContactDetail.accountId as any)?.name || 'Direct Contact'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedContactDetail(null)}
+                  className="size-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              {/* Direct Touchpoints Info */}
+              <div className="p-4 rounded-3xl bg-[#FAF7F2] border border-[#ECE5DA] space-y-2.5 text-xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Contact Information</span>
+                {selectedContactDetail.email && (
+                  <div className="flex items-center gap-2">
+                    <Mail className="size-3.5 text-slate-400 shrink-0" />
+                    <a href={`mailto:${selectedContactDetail.email}`} className="text-emerald-800 font-bold hover:underline">
+                      {selectedContactDetail.email}
+                    </a>
+                  </div>
+                )}
+                {selectedContactDetail.phone && (
+                  <div className="flex items-center gap-2 text-slate-700">
+                    <Phone className="size-3.5 text-slate-400 shrink-0" />
+                    <span>{selectedContactDetail.phone}</span>
+                  </div>
+                )}
+                {selectedContactDetail.linkedinUrl && (
+                  <div className="flex items-center gap-2">
+                    <Globe className="size-3.5 text-slate-400 shrink-0" />
+                    <a href={selectedContactDetail.linkedinUrl} target="_blank" rel="noreferrer" className="text-sky-700 font-bold hover:underline">
+                      LinkedIn Profile
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Related Deals */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">
+                  Related Deals ({selectedContactDetail.deals?.length || 0})
+                </h4>
+                {selectedContactDetail.deals?.length === 0 ? (
+                  <p className="text-[11px] text-slate-400 italic">No deals directly associated.</p>
+                ) : (
+                  selectedContactDetail.deals?.map((d) => (
+                    <div key={d.id} className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#ECE5DA] flex items-center justify-between text-xs">
+                      <div>
+                        <p className="font-bold text-slate-900">{d.name}</p>
+                        <p className="text-[10px] text-slate-500">${d.value.toLocaleString()} USD</p>
+                      </div>
+                      <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-white border border-[#ECE5DA]">
+                        {d.status === 'WON' ? 'Closed Won' : d.status}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Activities & Communication History */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">
+                  Communication History & Activities ({selectedContactDetail.activities?.length || 0})
+                </h4>
+                {selectedContactDetail.activities?.length === 0 ? (
+                  <p className="text-[11px] text-slate-400 italic">No activities recorded for this contact.</p>
+                ) : (
+                  selectedContactDetail.activities?.map((act) => (
+                    <div key={act.id} className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#ECE5DA] space-y-1 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded-sm bg-slate-200 text-slate-700">
+                          {act.type}
+                        </span>
+                        <span className="text-[10px] text-slate-400">{new Date(act.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <p className="font-bold text-slate-800">{act.subject}</p>
+                      {act.description && <p className="text-[11px] text-slate-500">{act.description}</p>}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-[#E5E7EB]">
+              <button
+                type="button"
+                onClick={() => setSelectedContactDetail(null)}
+                className="w-full h-10 rounded-full bg-[#0B2E23] text-white font-bold text-xs hover:bg-[#0B251A] cursor-pointer"
+              >
+                Close Profile
+              </button>
+            </div>
           </div>
         </div>
       )}

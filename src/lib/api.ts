@@ -1395,10 +1395,11 @@ export const crmApi = {
 
   // Activities
   activities: {
-    list: async (params?: { type?: string; status?: string; relatedEntityType?: string; relatedEntityId?: string; assignedToId?: string; page?: number; limit?: number }) => {
+    list: async (params?: { type?: string; status?: string; search?: string; relatedEntityType?: string; relatedEntityId?: string; assignedToId?: string; page?: number; limit?: number }) => {
       const searchParams = new URLSearchParams();
       if (params?.type && params.type !== 'all') searchParams.set('type', params.type);
       if (params?.status && params.status !== 'all') searchParams.set('status', params.status);
+      if (params?.search) searchParams.set('search', params.search);
       if (params?.relatedEntityType && params.relatedEntityType !== 'all') searchParams.set('relatedEntityType', params.relatedEntityType);
       if (params?.relatedEntityId) searchParams.set('relatedEntityId', params.relatedEntityId);
       if (params?.assignedToId) searchParams.set('assignedToId', params.assignedToId);

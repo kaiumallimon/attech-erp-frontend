@@ -77,7 +77,7 @@ export default function CrmProposalsPage() {
   const dealSelectOptions: SelectOption[] = useMemo(() => {
     const list = Array.isArray(deals) ? deals : [];
     return [
-      { key: '', value: '', label: 'Select Deal / Opportunity' },
+      { key: '', value: '', label: 'Select Deal' },
       ...list.map((d) => ({
         key: d.id,
         value: d.id,
@@ -138,7 +138,7 @@ export default function CrmProposalsPage() {
     e.preventDefault();
     try {
       await crmApi.proposals.create(proposalForm);
-      showToast('Proposal created and calculated successfully.');
+      showToast('Proposal generated successfully.');
       setIsProposalModalOpen(false);
       void loadProposals();
     } catch (err: any) {
@@ -149,7 +149,7 @@ export default function CrmProposalsPage() {
   const handleUpdateProposalStatus = async (proposalId: string, status: string) => {
     try {
       await crmApi.proposals.updateStatus(proposalId, status);
-      showToast(`Proposal status updated to ${status}.`);
+      showToast(`Proposal marked as ${status}.`);
       void loadProposals();
       if (selectedProposalDetail?.id === proposalId) {
         const updated = await crmApi.proposals.get(proposalId);
@@ -175,9 +175,13 @@ export default function CrmProposalsPage() {
         </div>
       )}
 
+      {/* Compact ERP Header */}
       <CrmNavHeader
-        title="Quotation Proposals Engine"
-        subtitle="Create versioned agency proposals, compute line items, deliverable scopes, payment terms, and acceptances."
+        title="Proposals"
+        subtitle="Quotation proposals, line-item scopes, payment terms, and client approvals."
+        breadcrumb={[
+          { label: 'CRM & Sales', href: '/dashboard/crm' },
+        ]}
         onRefresh={() => void loadProposals()}
         isRefreshing={loading}
         actionButton={
@@ -191,30 +195,30 @@ export default function CrmProposalsPage() {
                 terms: 'Standard milestone payment schedule: 30% upfront, 40% beta testing, 30% deployment.',
                 notes: '',
                 items: [
-                  { name: 'Core Application Development', description: 'Next.js frontend, NestJS backend API', quantity: 1, unitPrice: 25000, discount: 0, tax: 0, total: 25000 },
+                  { name: 'Core Software Development', description: 'Next.js frontend, NestJS backend API', quantity: 1, unitPrice: 25000, discount: 0, tax: 0, total: 25000 },
                 ],
               });
               setIsProposalModalOpen(true);
             }}
-            className="h-10 px-5 rounded-full bg-[#AEFF48] text-[#0B2E23] font-bold text-xs hover:bg-[#9DE83E] transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+            className="h-9 px-4 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-xs hover:bg-[#0B251A] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
-            <Plus className="size-4" />
+            <Plus className="size-3.5" />
             <span>Generate Proposal</span>
           </button>
         }
       />
 
       {/* Search Toolbar */}
-      <div className="p-4 rounded-3xl bg-white border border-[#E5E7EB] shadow-xs flex flex-wrap items-center justify-between gap-3">
+      <div className="p-3.5 rounded-3xl bg-white border border-[#E5E7EB] shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[280px]">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400" />
           <input
             type="text"
             placeholder="Search proposals by title or terms..."
             value={proposalsSearch}
             onChange={(e) => setProposalsSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && void loadProposals()}
-            className="w-full h-10 pl-10 pr-4 rounded-full border border-[#E5E7EB] text-xs text-slate-800 focus:outline-none focus:border-[#0B2E23]"
+            className="w-full h-9 pl-9 pr-3 rounded-full border border-[#E5E7EB] text-xs text-slate-800 focus:outline-none focus:border-[#0B2E23]"
           />
         </div>
       </div>
@@ -255,7 +259,7 @@ export default function CrmProposalsPage() {
                 </div>
 
                 <div className="space-y-1 text-[11px] text-slate-500">
-                  <p>Client: {prop.dealId?.accountId?.name || 'Prospect Client'}</p>
+                  <p>Account: {prop.dealId?.accountId?.name || 'Prospect Client'}</p>
                   {prop.validUntil && (
                     <p>Valid until: {new Date(prop.validUntil).toLocaleDateString()}</p>
                   )}
@@ -277,7 +281,7 @@ export default function CrmProposalsPage() {
 
               <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] text-slate-400 font-semibold">Total Cost</p>
+                  <p className="text-[10px] text-slate-400 font-semibold">Total Value</p>
                   <p className="text-base font-black text-[#0B2E23]">
                     ${prop.total.toLocaleString()} {prop.currency}
                   </p>
@@ -299,7 +303,7 @@ export default function CrmProposalsPage() {
                       onClick={() => void handleUpdateProposalStatus(prop.id, ProposalStatus.ACCEPTED)}
                       className="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-[10px] cursor-pointer transition-colors"
                     >
-                      Accept Proposal
+                      Accept
                     </button>
                   )}
                   <button
@@ -309,7 +313,7 @@ export default function CrmProposalsPage() {
                       setSelectedProposalDetail(full);
                     }}
                     className="size-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer transition-colors"
-                    title="View Full Document"
+                    title="View Document"
                   >
                     <Eye className="size-3.5" />
                   </button>
@@ -324,17 +328,17 @@ export default function CrmProposalsPage() {
       {isProposalModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
           <div className="w-full max-w-2xl rounded-4xl bg-white shadow-2xl border border-[#E5E7EB] overflow-hidden my-8">
-            <div className="p-6 bg-linear-to-r from-[#0B2E23] to-[#0B251A] text-white flex items-center justify-between">
+            <div className="p-5 bg-[#0B2E23] text-white flex items-center justify-between">
               <div>
-                <h3 className="text-base font-black">Generate Quotation Proposal</h3>
-                <p className="text-xs text-white/70">Calculates line item deliverables, taxes, and discounts securely</p>
+                <h3 className="text-sm font-black">Generate Proposal</h3>
+                <p className="text-[11px] text-white/70">Calculates line items, deliverable scopes, and payment terms</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsProposalModalOpen(false)}
-                className="size-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
+                className="size-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
               >
-                <X className="size-4" />
+                <X className="size-3.5" />
               </button>
             </div>
 
@@ -346,7 +350,7 @@ export default function CrmProposalsPage() {
                     value={proposalForm.dealId}
                     options={dealSelectOptions}
                     onChange={(val) => setProposalForm((prev) => ({ ...prev, dealId: val }))}
-                    className="w-full h-10 text-xs"
+                    className="w-full h-9 text-xs"
                   />
                 </div>
                 <div>
@@ -356,13 +360,13 @@ export default function CrmProposalsPage() {
                     required
                     value={proposalForm.title}
                     onChange={(e) => setProposalForm((prev) => ({ ...prev, title: e.target.value }))}
-                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs font-bold"
+                    className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs font-bold"
                   />
                 </div>
               </div>
 
               {/* Line Items Builder */}
-              <div className="space-y-3 pt-2">
+              <div className="space-y-3 pt-1">
                 <div className="flex items-center justify-between">
                   <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">
                     Deliverables & Line Items
@@ -387,10 +391,10 @@ export default function CrmProposalsPage() {
                         <input
                           type="text"
                           required
-                          placeholder="Deliverable Name (e.g. UI/UX Design System)"
+                          placeholder="Deliverable Name (e.g. Core API Backend)"
                           value={item.name}
                           onChange={(e) => handleProposalItemChange(index, 'name', e.target.value)}
-                          className="flex-1 h-9 px-3 rounded-xl border border-[#E5E7EB] bg-white text-xs font-bold text-slate-800"
+                          className="flex-1 h-8 px-3 rounded-xl border border-[#E5E7EB] bg-white text-xs font-bold text-slate-800"
                         />
                         {proposalForm.items.length > 1 && (
                           <button
@@ -405,7 +409,7 @@ export default function CrmProposalsPage() {
 
                       <div className="grid grid-cols-4 gap-2">
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Quantity</label>
+                          <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Qty</label>
                           <input
                             type="number"
                             min="1"
@@ -435,7 +439,7 @@ export default function CrmProposalsPage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Line Total</label>
+                          <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Total</label>
                           <div className="h-8 px-2.5 rounded-xl bg-white border border-[#E5E7EB] flex items-center font-black text-[#0B2E23]">
                             ${item.total.toLocaleString()}
                           </div>
@@ -449,7 +453,7 @@ export default function CrmProposalsPage() {
               {/* Total Calculation Card */}
               <div className="p-4 rounded-3xl bg-[#0B2E23] text-white flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] uppercase font-bold text-white/70">Proposal Net Total</p>
+                  <p className="text-[10px] uppercase font-bold text-white/70">Proposal Net Value</p>
                   <p className="text-xl font-black text-[#AEFF48]">
                     ${calculateProposalTotals.finalTotal.toLocaleString()} USD
                   </p>
@@ -463,7 +467,7 @@ export default function CrmProposalsPage() {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Contract / Payment Terms</label>
+                <label className="block font-bold text-slate-700 mb-1">Contract & Payment Terms</label>
                 <textarea
                   rows={2}
                   value={proposalForm.terms}
@@ -472,17 +476,17 @@ export default function CrmProposalsPage() {
                 />
               </div>
 
-              <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsProposalModalOpen(false)}
-                  className="h-10 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
+                  className="h-9 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="h-10 px-6 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer shadow-xs"
+                  className="h-9 px-5 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer shadow-xs"
                 >
                   Create Proposal
                 </button>
@@ -548,11 +552,11 @@ export default function CrmProposalsPage() {
               )}
             </div>
 
-            <div className="pt-4 border-t border-[#E5E7EB] flex items-center gap-2">
+            <div className="pt-4 border-t border-[#E5E7EB]">
               <button
                 type="button"
                 onClick={() => setSelectedProposalDetail(null)}
-                className="flex-1 h-11 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer"
+                className="w-full h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer"
               >
                 Close
               </button>

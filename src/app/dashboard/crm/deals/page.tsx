@@ -1,19 +1,36 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   AlertCircle,
+  Award,
+  Briefcase,
+  Building2,
+  Calendar,
+  Check,
   CheckCircle2,
+  Clock,
+  DollarSign,
   Edit2,
   Eye,
+  FileText,
+  FolderGit2,
+  FolderOpen,
   Plus,
+  Rocket,
+  Search,
+  Sparkles,
   Target,
   Trash2,
+  User,
+  Users,
   X,
 } from 'lucide-react';
 import { crmApi, employeesApi } from '../../../../lib/api';
 import {
   CrmAccount,
+  CrmContact,
   CrmDeal,
   CrmDealType,
   CrmLostReason,
@@ -34,6 +51,7 @@ export default function CrmDealsPage() {
   const [pipelines, setPipelines] = useState<CrmPipeline[]>([]);
   const [activePipelineId, setActivePipelineId] = useState<string>('');
   const [accounts, setAccounts] = useState<CrmAccount[]>([]);
+  const [contacts, setContacts] = useState<CrmContact[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [dealTypes, setDealTypes] = useState<CrmDealType[]>([]);
   const [lostReasons, setLostReasons] = useState<CrmLostReason[]>([]);
@@ -41,6 +59,7 @@ export default function CrmDealsPage() {
   const [isDealModalOpen, setIsDealModalOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState<CrmDeal | null>(null);
   const [selectedDealDetail, setSelectedDealDetail] = useState<CrmDeal | null>(null);
+  const [activeDealTab, setActiveDealTab] = useState<'overview' | 'timeline' | 'proposals' | 'documents'>('overview');
 
   const [dealForm, setDealForm] = useState<{
     name: string;
@@ -81,6 +100,10 @@ export default function CrmDealsPage() {
     lostNotes: '',
   });
 
+  // Project Creation Integration Modal
+  const [isProjectIntegrationModalOpen, setIsProjectIntegrationModalOpen] = useState(false);
+  const [targetProjectDeal, setTargetProjectDeal] = useState<CrmDeal | null>(null);
+
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
     setToastMessage({ text, type });
     setTimeout(() => setToastMessage(null), 4000);
@@ -89,11 +112,12 @@ export default function CrmDealsPage() {
   const loadDeals = async () => {
     setLoading(true);
     try {
-      const [tableRes, kanbanRes, pipeRes, accRes, empRes, typeRes, reasonRes] = await Promise.all([
+      const [tableRes, kanbanRes, pipeRes, accRes, contactRes, empRes, typeRes, reasonRes] = await Promise.all([
         crmApi.deals.list({ pipelineId: activePipelineId }),
         crmApi.deals.kanban(activePipelineId),
         crmApi.settings.getPipelines().catch(() => []),
         crmApi.accounts.list().catch(() => ({ data: [] })),
+        crmApi.contacts.list().catch(() => ({ data: [] })),
         employeesApi.list({ limit: 100 }).catch(() => ({ data: [] })),
         crmApi.settings.getDealTypes().catch(() => []),
         crmApi.settings.getLostReasons().catch(() => []),
@@ -110,6 +134,7 @@ export default function CrmDealsPage() {
       }
 
       setAccounts(Array.isArray(accRes) ? accRes : Array.isArray((accRes as any)?.items) ? (accRes as any).items : Array.isArray((accRes as any)?.data) ? (accRes as any).data : []);
+      setContacts(Array.isArray(contactRes) ? contactRes : Array.isArray((contactRes as any)?.items) ? (contactRes as any).items : Array.isArray((contactRes as any)?.data) ? (contactRes as any).data : []);
 
       const empList = Array.isArray(empRes) ? empRes : Array.isArray((empRes as any)?.data) ? (empRes as any).data : [];
       setEmployees(empList);
@@ -166,7 +191,7 @@ export default function CrmDealsPage() {
   const accountSelectOptions: SelectOption[] = useMemo(() => {
     const list = Array.isArray(accounts) ? accounts : [];
     return [
-      { key: '', value: '', label: 'Select Client Account' },
+      { key: '', value: '', label: 'Select Account' },
       ...list.map((a) => ({ key: a.id, value: a.id, label: a.name })),
     ];
   }, [accounts]);
@@ -202,7 +227,7 @@ export default function CrmDealsPage() {
   const handleMarkWon = async (dealId: string) => {
     try {
       await crmApi.deals.markWon(dealId);
-      showToast('🎉 Congratulations! Deal marked as WON.');
+      showToast('🎉 Congratulations! Deal marked as Closed Won.');
       void loadDeals();
     } catch (err: any) {
       showToast(err.message || 'Failed to mark deal as won', 'error');
@@ -229,6 +254,21 @@ export default function CrmDealsPage() {
     }
   };
 
+  const handleOpenDealDetail = async (dealId: string) => {
+    try {
+      const full = await crmApi.deals.get(dealId);
+      setSelectedDealDetail(full);
+      setActiveDealTab('overview');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to load deal details', 'error');
+    }
+  };
+
+  const handleTriggerCreateProject = (deal: CrmDeal) => {
+    setTargetProjectDeal(deal);
+    setIsProjectIntegrationModalOpen(true);
+  };
+
   return (
     <div className="space-y-6 pb-20 select-none">
       {toastMessage && (
@@ -244,9 +284,13 @@ export default function CrmDealsPage() {
         </div>
       )}
 
+      {/* Compact ERP Header */}
       <CrmNavHeader
-        title="Sales Pipeline & Deals"
-        subtitle="Visual drag-and-drop Kanban opportunity stages, deal velocity, probability scoring, and won revenue."
+        title="Deals"
+        subtitle="Sales opportunity pipelines, Kanban stage advancement, and deal value tracking."
+        breadcrumb={[
+          { label: 'CRM & Sales', href: '/dashboard/crm' },
+        ]}
         onRefresh={() => void loadDeals()}
         isRefreshing={loading}
         actionButton={
@@ -272,22 +316,22 @@ export default function CrmDealsPage() {
               });
               setIsDealModalOpen(true);
             }}
-            className="h-10 px-5 rounded-full bg-[#AEFF48] text-[#0B2E23] font-bold text-xs hover:bg-[#9DE83E] transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+            className="h-9 px-4 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-xs hover:bg-[#0B251A] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
-            <Plus className="size-4" />
+            <Plus className="size-3.5" />
             <span>Create Deal</span>
           </button>
         }
       />
 
       {/* Pipeline Toolbar */}
-      <div className="p-4 rounded-3xl bg-white border border-[#E5E7EB] shadow-xs flex flex-wrap items-center justify-between gap-3">
+      <div className="p-3.5 rounded-3xl bg-white border border-[#E5E7EB] shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="text-xs font-bold text-slate-500">Pipeline:</span>
           <select
             value={activePipelineId}
             onChange={(e) => setActivePipelineId(e.target.value)}
-            className="h-10 px-4 rounded-full border border-[#E5E7EB] text-xs font-bold text-slate-900 bg-white"
+            className="h-9 px-3 rounded-full border border-[#E5E7EB] text-xs font-bold text-slate-900 bg-white"
           >
             {pipelines.map((p) => (
               <option key={p.id} value={p.id}>
@@ -296,11 +340,11 @@ export default function CrmDealsPage() {
             ))}
           </select>
 
-          <div className="flex items-center bg-[#FAF7F2] p-1 rounded-full border border-[#ECE5DA]">
+          <div className="flex items-center bg-[#FAF7F2] p-0.5 rounded-full border border-[#ECE5DA]">
             <button
               type="button"
               onClick={() => setDealsViewMode('kanban')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors cursor-pointer ${
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-colors cursor-pointer ${
                 dealsViewMode === 'kanban'
                   ? 'bg-[#0B2E23] text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -311,7 +355,7 @@ export default function CrmDealsPage() {
             <button
               type="button"
               onClick={() => setDealsViewMode('table')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors cursor-pointer ${
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-colors cursor-pointer ${
                 dealsViewMode === 'table'
                   ? 'bg-[#0B2E23] text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -363,7 +407,12 @@ export default function CrmDealsPage() {
                       className="p-4 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs hover:shadow-md hover:border-[#0B2E23]/30 transition-all space-y-2.5 group"
                     >
                       <div className="flex items-start justify-between gap-1">
-                        <h5 className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug">{deal.name}</h5>
+                        <h5
+                          onClick={() => void handleOpenDealDetail(deal.id)}
+                          className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug hover:text-emerald-800 cursor-pointer"
+                        >
+                          {deal.name}
+                        </h5>
                         <span className="text-xs font-black text-[#0B2E23] shrink-0">
                           ${deal.value.toLocaleString()}
                         </span>
@@ -373,7 +422,7 @@ export default function CrmDealsPage() {
                         <span className="truncate">{deal.accountId?.name || 'Prospect Client'}</span>
                         {deal.expectedCloseDate && (
                           <span className="text-[10px] text-slate-400">
-                            Close: {new Date(deal.expectedCloseDate).toLocaleDateString()}
+                            {new Date(deal.expectedCloseDate).toLocaleDateString()}
                           </span>
                         )}
                       </div>
@@ -391,36 +440,47 @@ export default function CrmDealsPage() {
                                 className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-[#0B2E23] hover:text-[#AEFF48] text-slate-600 text-[9px] font-bold transition-colors cursor-pointer"
                                 title={`Move to ${s.name}`}
                               >
-                                $\to$ {s.name.split(' ')[0]}
+                                → {s.name.split(' ')[0]}
                               </button>
                             ))}
                         </div>
 
                         <div className="flex items-center gap-1">
+                          {deal.status === 'WON' ? (
+                            <button
+                              type="button"
+                              onClick={() => handleTriggerCreateProject(deal)}
+                              className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 font-bold text-[9px] hover:bg-emerald-200 cursor-pointer flex items-center gap-1"
+                              title="Create Project in PM"
+                            >
+                              <Rocket className="size-2.5" />
+                              <span>Project</span>
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleMarkWon(deal.id)}
+                                className="size-6 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] font-bold cursor-pointer"
+                                title="Mark as Closed Won"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenMarkLost(deal.id)}
+                                className="size-6 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-800 flex items-center justify-center text-[10px] font-bold cursor-pointer"
+                                title="Mark as Closed Lost"
+                              >
+                                ✕
+                              </button>
+                            </>
+                          )}
                           <button
                             type="button"
-                            onClick={() => handleMarkWon(deal.id)}
-                            className="size-6 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] font-bold cursor-pointer"
-                            title="Mark as WON"
-                          >
-                            $\checkmark$
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleOpenMarkLost(deal.id)}
-                            className="size-6 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-800 flex items-center justify-center text-[10px] font-bold cursor-pointer"
-                            title="Mark as LOST"
-                          >
-                            $\times$
-                          </button>
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              const full = await crmApi.deals.get(deal.id);
-                              setSelectedDealDetail(full);
-                            }}
+                            onClick={() => void handleOpenDealDetail(deal.id)}
                             className="size-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold cursor-pointer"
-                            title="View Deal History & Proposals"
+                            title="View Detail Page"
                           >
                             <Eye className="size-3" />
                           </button>
@@ -442,13 +502,13 @@ export default function CrmDealsPage() {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-[#FAF7F2] border-b border-[#E5E7EB] text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                  <th className="py-3.5 px-4">Deal Name</th>
-                  <th className="py-3.5 px-4">Client Account</th>
-                  <th className="py-3.5 px-4">Value</th>
-                  <th className="py-3.5 px-4">Stage</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4">Owner</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
+                  <th className="py-3 px-4">Deal Name</th>
+                  <th className="py-3 px-4">Account</th>
+                  <th className="py-3 px-4">Value</th>
+                  <th className="py-3 px-4">Stage</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Owner</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E5E7EB]">
@@ -483,7 +543,7 @@ export default function CrmDealsPage() {
                               : 'bg-amber-100 text-amber-800'
                           }`}
                         >
-                          {deal.status}
+                          {deal.status === 'WON' ? 'Closed Won' : deal.status === 'LOST' ? 'Closed Lost' : deal.status}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-slate-600">
@@ -492,15 +552,21 @@ export default function CrmDealsPage() {
                           : 'Unassigned'}
                       </td>
                       <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
+                        {deal.status === 'WON' && (
+                          <button
+                            type="button"
+                            onClick={() => handleTriggerCreateProject(deal)}
+                            className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-bold text-[10px] hover:bg-emerald-100 cursor-pointer"
+                          >
+                            Create Project
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={async () => {
-                            const full = await crmApi.deals.get(deal.id);
-                            setSelectedDealDetail(full);
-                          }}
+                          onClick={() => void handleOpenDealDetail(deal.id)}
                           className="px-3 py-1 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-[10px] hover:bg-[#0B251A] cursor-pointer transition-colors"
                         >
-                          Overview
+                          Details
                         </button>
                         <button
                           type="button"
@@ -530,17 +596,17 @@ export default function CrmDealsPage() {
       {isDealModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
           <div className="w-full max-w-lg rounded-4xl bg-white shadow-2xl border border-[#E5E7EB] overflow-hidden my-8">
-            <div className="p-6 bg-[#0B2E23] text-white flex items-center justify-between">
+            <div className="p-5 bg-[#0B2E23] text-white flex items-center justify-between">
               <div>
-                <h3 className="text-base font-black">{editingDeal ? 'Edit Deal' : 'New Sales Opportunity'}</h3>
-                <p className="text-xs text-white/70">Configure deal value, stages, and customer linkage</p>
+                <h3 className="text-sm font-black">{editingDeal ? 'Edit Deal' : 'New Sales Opportunity'}</h3>
+                <p className="text-[11px] text-white/70">Configure deal value, stages, and account linkage</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsDealModalOpen(false)}
-                className="size-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
+                className="size-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
               >
-                <X className="size-4" />
+                <X className="size-3.5" />
               </button>
             </div>
 
@@ -550,21 +616,21 @@ export default function CrmDealsPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Next-Gen Mobile Banking Platform"
+                  placeholder="e.g. Next-Gen Cloud Banking Platform"
                   value={dealForm.name}
                   onChange={(e) => setDealForm((prev) => ({ ...prev, name: e.target.value }))}
-                  className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs font-bold"
+                  className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs font-bold"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Client Account *</label>
+                  <label className="block font-bold text-slate-700 mb-1">Account *</label>
                   <HeroSelect
                     value={dealForm.accountId}
                     options={accountSelectOptions}
                     onChange={(val) => setDealForm((prev) => ({ ...prev, accountId: val }))}
-                    className="w-full h-10 text-xs"
+                    className="w-full h-9 text-xs"
                   />
                 </div>
                 <div>
@@ -574,28 +640,28 @@ export default function CrmDealsPage() {
                     required
                     value={dealForm.value}
                     onChange={(e) => setDealForm((prev) => ({ ...prev, value: Number(e.target.value) }))}
-                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs font-black text-[#0B2E23]"
+                    className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs font-black text-[#0B2E23]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Sales Pipeline *</label>
+                  <label className="block font-bold text-slate-700 mb-1">Pipeline *</label>
                   <HeroSelect
                     value={dealForm.pipelineId}
                     options={pipelineOptions}
                     onChange={(val) => setDealForm((prev) => ({ ...prev, pipelineId: val }))}
-                    className="w-full h-10 text-xs"
+                    className="w-full h-9 text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Pipeline Stage *</label>
+                  <label className="block font-bold text-slate-700 mb-1">Stage *</label>
                   <HeroSelect
                     value={dealForm.stageId}
                     options={stageOptions}
                     onChange={(val) => setDealForm((prev) => ({ ...prev, stageId: val }))}
-                    className="w-full h-10 text-xs"
+                    className="w-full h-9 text-xs"
                   />
                 </div>
               </div>
@@ -607,7 +673,7 @@ export default function CrmDealsPage() {
                     value={dealForm.ownerId}
                     options={employeeOptions}
                     onChange={(val) => setDealForm((prev) => ({ ...prev, ownerId: val }))}
-                    className="w-full h-10 text-xs"
+                    className="w-full h-9 text-xs"
                   />
                 </div>
                 <div>
@@ -616,7 +682,7 @@ export default function CrmDealsPage() {
                     type="date"
                     value={dealForm.expectedCloseDate}
                     onChange={(e) => setDealForm((prev) => ({ ...prev, expectedCloseDate: e.target.value }))}
-                    className="w-full h-10 px-3.5 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
+                    className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-slate-800 text-xs"
                   />
                 </div>
               </div>
@@ -632,17 +698,17 @@ export default function CrmDealsPage() {
                 />
               </div>
 
-              <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsDealModalOpen(false)}
-                  className="h-10 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
+                  className="h-9 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="h-10 px-6 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer shadow-xs"
+                  className="h-9 px-5 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold hover:bg-[#0B251A] cursor-pointer shadow-xs"
                 >
                   {editingDeal ? 'Save Changes' : 'Create Deal'}
                 </button>
@@ -652,20 +718,224 @@ export default function CrmDealsPage() {
         </div>
       )}
 
-      {/* Modal: Mark Deal Lost */}
+      {/* Drawer: Detailed Deal Page */}
+      {selectedDealDetail && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-end animate-fadeIn">
+          <div className="w-full max-w-2xl h-full bg-white shadow-2xl border-l border-[#E5E7EB] overflow-y-auto p-6 sm:p-8 space-y-6 flex flex-col justify-between">
+            <div className="space-y-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Deal Details • {selectedDealDetail.pipelineId?.name}
+                  </span>
+                  <h3 className="text-xl font-black text-slate-900 mt-0.5">{selectedDealDetail.name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm font-black text-[#0B2E23]">
+                      ${selectedDealDetail.value.toLocaleString()} {selectedDealDetail.currency}
+                    </span>
+                    <span
+                      className={`text-[9px] font-extrabold uppercase px-2 py-0.2 rounded-full ${
+                        selectedDealDetail.status === 'WON'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : selectedDealDetail.status === 'LOST'
+                          ? 'bg-rose-100 text-rose-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}
+                    >
+                      {selectedDealDetail.status === 'WON' ? 'Closed Won' : selectedDealDetail.status === 'LOST' ? 'Closed Lost' : selectedDealDetail.status}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDealDetail(null)}
+                  className="size-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              {/* Deal Drawer Navigation Tabs */}
+              <div className="flex items-center gap-1.5 border-b border-[#E5E7EB] pb-2 overflow-x-auto no-scrollbar">
+                {[
+                  { id: 'overview', label: 'Overview' },
+                  { id: 'timeline', label: `Activities (${selectedDealDetail.activities?.length || 0})` },
+                  { id: 'proposals', label: `Proposals (${selectedDealDetail.proposals?.length || 0})` },
+                  { id: 'documents', label: 'Documents' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveDealTab(tab.id as any)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                      activeDealTab === tab.id
+                        ? 'bg-[#0B2E23] text-white shadow-xs'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tab 1: Overview */}
+              {activeDealTab === 'overview' && (
+                <div className="space-y-4 text-xs">
+                  <div className="grid grid-cols-2 gap-3 p-4 rounded-3xl bg-[#FAF7F2] border border-[#ECE5DA]">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Account</span>
+                      <p className="font-semibold text-slate-800">{selectedDealDetail.accountId?.name || '—'}</p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Primary Contact</span>
+                      <p className="font-semibold text-slate-800">
+                        {selectedDealDetail.contactId
+                          ? `${(selectedDealDetail.contactId as any).firstName} ${(selectedDealDetail.contactId as any).lastName}`
+                          : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Stage & Probability</span>
+                      <p className="font-semibold text-slate-800">
+                        {selectedDealDetail.stageId?.name} ({selectedDealDetail.probability}%)
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Deal Owner</span>
+                      <p className="font-semibold text-slate-800">
+                        {selectedDealDetail.ownerId?.userId
+                          ? `${selectedDealDetail.ownerId.userId.firstName} ${selectedDealDetail.ownerId.userId.lastName}`
+                          : 'Unassigned'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Expected Close</span>
+                      <p className="font-semibold text-slate-800">
+                        {selectedDealDetail.expectedCloseDate
+                          ? new Date(selectedDealDetail.expectedCloseDate).toLocaleDateString()
+                          : 'Not set'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Deal Type</span>
+                      <p className="font-semibold text-slate-800">{selectedDealDetail.dealTypeId?.name || 'Standard'}</p>
+                    </div>
+                  </div>
+
+                  {selectedDealDetail.description && (
+                    <div className="p-4 rounded-3xl bg-white border border-[#E5E7EB] space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Scope & Deliverables</span>
+                      <p className="text-slate-600 leading-relaxed">{selectedDealDetail.description}</p>
+                    </div>
+                  )}
+
+                  {selectedDealDetail.status === 'WON' && (
+                    <div className="p-4 rounded-3xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                      <div>
+                        <p className="font-bold text-emerald-950">Deal is Closed Won!</p>
+                        <p className="text-[11px] text-emerald-800">Ready to initiate Project Management delivery workflow.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleTriggerCreateProject(selectedDealDetail)}
+                        className="px-4 py-2 rounded-full bg-[#0B2E23] text-[#AEFF48] font-bold text-xs hover:bg-[#0B251A] cursor-pointer"
+                      >
+                        Create Project
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 2: Activity Timeline */}
+              {activeDealTab === 'timeline' && (
+                <div className="space-y-3">
+                  {selectedDealDetail.activities?.length === 0 ? (
+                    <div className="text-center py-10 text-xs text-slate-400 italic">No activity logged for this deal.</div>
+                  ) : (
+                    selectedDealDetail.activities?.map((act) => (
+                      <div key={act.id} className="p-3.5 rounded-2xl bg-[#FAF7F2] border border-[#ECE5DA] space-y-1 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded-sm bg-slate-200 text-slate-700">
+                            {act.type}
+                          </span>
+                          <span className="text-[10px] text-slate-400">{new Date(act.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <p className="font-bold text-slate-800">{act.subject}</p>
+                        {act.description && <p className="text-[11px] text-slate-500">{act.description}</p>}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Tab 3: Proposals */}
+              {activeDealTab === 'proposals' && (
+                <div className="space-y-3">
+                  {selectedDealDetail.proposals?.length === 0 ? (
+                    <div className="text-center py-10 text-xs text-slate-400 italic">No proposals attached.</div>
+                  ) : (
+                    selectedDealDetail.proposals?.map((prop) => (
+                      <div key={prop.id} className="p-3.5 rounded-2xl bg-[#FAF7F2] border border-[#ECE5DA] flex items-center justify-between text-xs">
+                        <div>
+                          <p className="font-bold text-slate-900">{prop.title} (v{prop.version})</p>
+                          <p className="text-[10px] text-slate-500">${prop.total.toLocaleString()} USD</p>
+                        </div>
+                        <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-white border border-[#ECE5DA]">
+                          {prop.status}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Tab 4: Documents */}
+              {activeDealTab === 'documents' && (
+                <div className="p-6 rounded-3xl bg-[#FAF7F2] border border-[#ECE5DA] text-center space-y-2">
+                  <FolderOpen className="size-8 text-slate-400 mx-auto" />
+                  <h4 className="text-xs font-bold text-slate-800">Deal Documents</h4>
+                  <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                    Statements of work (SOW), technical specifications, and signed agreements in CDN Storage.
+                  </p>
+                  <Link
+                    href="/dashboard/cdn"
+                    className="inline-block mt-2 px-4 py-1.5 rounded-full bg-slate-800 text-white font-bold text-[10px]"
+                  >
+                    Open Storage
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-4 border-t border-[#E5E7EB]">
+              <button
+                type="button"
+                onClick={() => setSelectedDealDetail(null)}
+                className="w-full h-10 rounded-full bg-[#0B2E23] text-white font-bold text-xs hover:bg-[#0B251A] cursor-pointer"
+              >
+                Close Drawer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Mark Deal Closed Lost */}
       {isMarkLostModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
           <div className="w-full max-w-md rounded-4xl bg-white shadow-2xl border border-[#E5E7EB] p-6 space-y-4 text-xs">
             <h3 className="text-sm font-black text-rose-900">Mark Opportunity as Closed Lost</h3>
-            <p className="text-slate-500">Document lost reason to optimize pipeline conversion analytics.</p>
+            <p className="text-slate-500">Record lost reason to optimize pipeline conversion analytics.</p>
 
             <form onSubmit={handleExecuteMarkLost} className="space-y-3">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Reason for Loss</label>
+                <label className="block font-bold text-slate-700 mb-1">Reason for Loss *</label>
                 <select
+                  required
                   value={lostReasonForm.lostReasonId}
                   onChange={(e) => setLostReasonForm((prev) => ({ ...prev, lostReasonId: e.target.value }))}
-                  className="w-full h-10 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-semibold"
+                  className="w-full h-9 px-3 rounded-2xl border border-[#E5E7EB] bg-white text-xs font-semibold"
                 >
                   {lostReasons.map((r) => (
                     <option key={r.id} value={r.id}>
@@ -681,7 +951,7 @@ export default function CrmDealsPage() {
                   rows={3}
                   value={lostReasonForm.lostNotes}
                   onChange={(e) => setLostReasonForm((prev) => ({ ...prev, lostNotes: e.target.value }))}
-                  placeholder="Competitor chosen, budget deficit details..."
+                  placeholder="Competitor chosen, budget constraints details..."
                   className="w-full p-3 rounded-2xl border border-[#E5E7EB] bg-white text-xs"
                 />
               </div>
@@ -690,18 +960,51 @@ export default function CrmDealsPage() {
                 <button
                   type="button"
                   onClick={() => setIsMarkLostModalOpen(false)}
-                  className="h-10 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
+                  className="h-9 px-4 rounded-full border border-[#E5E7EB] text-slate-600 font-bold hover:bg-[#FAF7F2] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="h-10 px-6 rounded-full bg-rose-800 text-white font-bold hover:bg-rose-900 cursor-pointer"
+                  className="h-9 px-5 rounded-full bg-rose-800 text-white font-bold hover:bg-rose-900 cursor-pointer"
                 >
                   Confirm Closed Lost
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Project Management Integration Point */}
+      {isProjectIntegrationModalOpen && targetProjectDeal && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+          <div className="w-full max-w-md rounded-4xl bg-white shadow-2xl border border-[#E5E7EB] p-6 space-y-4 text-xs">
+            <div className="flex items-center gap-2 text-emerald-800">
+              <Rocket className="size-5" />
+              <h3 className="text-sm font-black">Project Management Integration</h3>
+            </div>
+
+            <p className="text-slate-600 leading-relaxed">
+              Deal <span className="font-bold text-slate-900">{targetProjectDeal.name}</span> (${targetProjectDeal.value.toLocaleString()} USD) for account <span className="font-bold text-slate-900">{targetProjectDeal.accountId?.name}</span> is Closed Won.
+            </p>
+
+            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1">
+              <p className="font-bold">Project Initializer Boundary:</p>
+              <p className="text-[11px] leading-relaxed">
+                When the Project Management module is enabled, this integration point transmits account metadata, scopes, and budget values to generate project boards, sprint backlogs, and time trackers automatically.
+              </p>
+            </div>
+
+            <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsProjectIntegrationModalOpen(false)}
+                className="h-9 px-5 rounded-full bg-[#0B2E23] text-white font-bold cursor-pointer hover:bg-[#0B251A]"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
